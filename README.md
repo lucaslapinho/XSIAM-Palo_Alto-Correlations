@@ -44,7 +44,6 @@ All rules are delivered with `is_enabled: false` to prevent activation before en
 
 | Vendor | Description | Rules |
 |---|---|---:|
-| Airflow | Apache Airflow pipeline and DAG monitoring detections | 2 |
 | AWS | AWS CloudTrail, IAM, EC2, and cloud activity detections | 3 |
 | BeyondTrust | BeyondTrust EPM and Password Safe detections | 10 |
 | Cisco | Cisco network device and switch detections | 3 |
@@ -74,13 +73,6 @@ All rules are delivered with `is_enabled: false` to prevent activation before en
 5. Test the query before enabling alert generation.
 
 ## Correlation Rules
-
-### Airflow
-
-| Rule | Import File |
-|---|---|
-| SLP_Airflow DAG Failure Detected | [`Airflow/slp_airflow_dag_failure_detected.json`](<Airflow/slp_airflow_dag_failure_detected.json>) |
-| SLP_Airflow S3 DAG Failure Detected | [`Airflow/slp_airflow_s3_dag_failure_detected.json`](<Airflow/slp_airflow_s3_dag_failure_detected.json>) |
 
 ### AWS
 
