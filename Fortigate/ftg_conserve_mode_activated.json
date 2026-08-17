@@ -1,0 +1,39 @@
+[
+  {
+    "rule_id": 20,
+    "name": "FTG_Conserve Mode Activated",
+    "severity": "SEV_050_CRITICAL",
+    "xql_query": "// ============================================================\n// Rule: FTG_Conserve Mode Activated\n// Vendor: Fortigate\n// Objective:\n// Detect activity associated with FTG_Conserve Mode Activated.\n// Severity: SEV_050_CRITICAL\n// Category: OTHER\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0002 - Execution\n// Technique: T1204 - User Execution\n// Technique: T1204.002 - User Execution: Malicious File\n// Tactic: TA0001 - Initial Access\n\n// Fonte de dados: logs brutos do Fortinet FortiGate\ndataset = fortinet_fortigate_raw  \n\n// Filtro para eventos da categoria \"system\"\n// Restrição adicional para mensagens que indiquem \"Conserve mode activated\"\n| filter cat = \"system\"\n       and msg contains \"Conserve mode activated\"\n",
+    "is_enabled": false,
+    "description": "The FortiGate device has entered Conserve Mode, a system state triggered when memory usage exceeds a defined threshold. In this state, the system limits functionality to preserve stability, such as by stopping certain processes or bypassing UTM scanning. This alert indicates potential performance degradation and should be investigated to prevent service disruption.",
+    "alert_name": "FTG_Conserve Mode Activated",
+    "alert_category": "OTHER",
+    "alert_type": null,
+    "alert_description": "The FortiGate device has entered Conserve Mode, a system state triggered when memory usage exceeds a defined threshold. In this state, the system limits functionality to preserve stability, such as by stopping certain processes or bypassing UTM scanning. This alert indicates potential performance degradation and should be investigated to prevent service disruption.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "REAL_TIME",
+    "search_window": null,
+    "simple_schedule": null,
+    "timezone": null,
+    "crontab": null,
+    "suppression_enabled": false,
+    "suppression_duration": null,
+    "suppression_fields": null,
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0002 - Execution": [
+        "T1204 - User Execution",
+        "T1204.002 - User Execution: Malicious File"
+      ],
+      "TA0001 - Initial Access": []
+    },
+    "investigation_query_link": "dataset = fortinet_fortigate_raw\r\n| filter cat = \"system\"\r\n  and msg contains \"Conserve mode activated\"\r\n",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

@@ -1,0 +1,39 @@
+[
+  {
+    "rule_id": 152,
+    "name": "CTX_Suspicious Code Hosting Download Followed by MSI Installation",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: CTX_Suspicious Code Hosting Download Followed by MSI Installation\n// Vendor: Cortex\n// Objective:\n// Detect activity associated with CTX_Suspicious Code Hosting Download Followed by MSI Installation.\n// Severity: SEV_040_HIGH\n// Category: EXECUTION\n// ============================================================\n// SANITIZED: Environment-specific values replaced with generic placeholders.\n// MITRE ATT&CK:\n// Tactic: TA0002 - Execution\n// Technique: T1059 - Command and Scripting Interpreter\n\n// Title: CTX - Suspicious Code Hosting Download Followed by MSI Installation\n// Description: Detecta download de MSI/EXE/JS a partir de serviços de hospedagem de código ou arquivos públicos,\n// seguido de instalação/execução local. Útil para detectar campanhas de fake software e dropper inicial.\n// MITRE ATT&CK: T1059 (Execution), T1105 (Ingress Tool Transfer), T1218.007 (Msiexec - Defense Evasion)\n//\n// NOTA TH: Atacantes abusam de infraestrutura legítima (GitHub raw, Discord CDN, Cloudflare Workers)\n// para bypass de reputação de domínio em proxy/firewall. Vetor mais comum: fake-software + msiexec silencioso.\n// Pivô recomendado após disparo: agent_hostname → artefatos em %TEMP% e conexões de rede subsequentes.\n//\n// ALLOWLIST: Excluir build servers e pipelines CI/CD autorizados.\n// Adicionar antes do sort: | filter agent_hostname not in (\"<SERVER_NAME>\", \"JENKINSSRV\", \"CICD-RUNNER\")\n\nconfig case_sensitive = false\n| dataset = xdr_data\n\n// Escopo: eventos de criação de processo em Windows\n| filter agent_os_type = ENUM.AGENT_OS_WINDOWS\n| filter event_type = ENUM.PROCESS\n    and event_sub_type = ENUM.PROCESS_START\n\n// Campos relevantes para análise e alerta\n| fields\n    _time,\n    agent_hostname,\n    agent_ip_addresses,\n    actor_effective_username,\n    actor_process_image_name,\n    actor_process_image_path,\n    actor_process_command_line,\n    action_process_image_name,\n    action_process_image_path,\n    action_process_image_command_line,\n    action_process_image_sha256,\n    causality_actor_process_image_name,\n    causality_actor_process_image_path,\n    causality_actor_process_command_line\n\n// Normalização da linha de comando\n| alter action_cmd = lowercase(action_process_image_command_line)\n\n| filter (\n        // BLOCO 1: LOLBins nativos fazendo download de hospedagem pública para diretório temporário\n        // curl.exe, certutil /urlcache e bitsadmin /transfer são os mais abusados como downloaders\n        (\n            action_process_image_name in (\"curl.exe\", \"powershell.exe\", \"pwsh.exe\", \"certutil.exe\", \"bitsadmin.exe\")\n            and action_cmd ~= \"(raw\\\\.githubusercontent\\\\.com|github\\\\.com|sourceforge\\\\.net|cdn\\\\.discordapp\\\\.com|workers\\\\.dev)\"\n            and action_cmd ~= \"\\\\.(msi|exe|js|ps1|vbs)\"\n            and action_cmd ~= \"(%temp%|\\\\\\\\temp\\\\\\\\|\\\\\\\\appdata\\\\\\\\)\"\n        )\n        or\n        // BLOCO 2: msiexec em modo silencioso instalando de diretório de usuário\n        // Flags /quiet e /qn = instalação sem interação — assinatura característica de dropper\n        (\n            action_process_image_name = \"msiexec.exe\"\n            and action_cmd ~= \"(/i|/quiet|/qn)\"\n            and action_cmd ~= \"(%temp%|\\\\\\\\users\\\\\\\\[^\\\\\\\\]+\\\\\\\\appdata\\\\\\\\local\\\\\\\\temp|\\\\\\\\appdata\\\\\\\\roaming)\"\n        )\n        or\n        // BLOCO 3: PowerShell combinando download + exec via msiexec em linha única\n        // One-liner de download→exec é assinatura forte; estes alertas têm prioridade mais alta que BLOCO 1\n        (\n            action_cmd ~= \"(curl|iwr|invoke-webrequest|downloadstring|downloadfile)\"\n            and action_cmd contains \"msiexec\"\n            and action_cmd ~= \"(raw\\\\.githubusercontent\\\\.com|github\\\\.com|sourceforge\\\\.net)\"\n        )\n)\n",
+    "is_enabled": false,
+    "description": "Detecta download de MSI/EXE/JS a partir de serviços de hospedagem de código ou arquivos públicos, seguido de instalação/execução local. Útil para campanhas de fake software e dropper inicial.",
+    "alert_name": "CTX - Suspicious Code Hosting Download Followed by MSI Installation",
+    "alert_category": "EXECUTION",
+    "alert_type": null,
+    "alert_description": "Detectada possível entrega de payload por hospedagem pública no host $agent_hostname , executada pelo usuário $actor_effective_username . O processo $action_process_image_name executou a linha de comando $action_process_image_command_line.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "SCHEDULED",
+    "search_window": "1 hours",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "actor_effective_username"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0002 - Execution": [
+        "T1059 - Command and Scripting Interpreter"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "AUTO",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

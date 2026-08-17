@@ -1,0 +1,39 @@
+[
+  {
+    "rule_id": 103,
+    "name": "WIN_AD Multiple User Deletions",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: WIN_AD Multiple User Deletions\n// Vendor: Windows\n// Objective:\n// Detect activity associated with WIN_AD Multiple User Deletions.\n// Severity: SEV_040_HIGH\n// Category: CREDENTIAL_ACCESS\n// ============================================================\n// SANITIZED: Environment-specific values replaced with generic placeholders.\n// MITRE ATT&CK:\n// Tactic: TA0040 - Impact\n// Technique: T1485 - Data Destruction\n\n// Configuração inicial: comparações não diferenciam maiúsculas/minúsculas\n// Objetivo: padronizar comparações e evitar perda de eventos por variações de caixa\nconfig case_sensitive = false\n\n// Fonte de dados: telemetria do agente (inclui Windows Security Event Log)\n| dataset = xdr_data\n\n// Filtro: restringe a eventos do Windows Event Log\n// Event ID 4726 = \"A user account was deleted\" (exclusão de conta no AD/Windows)\n| filter event_type = ENUM.EVENT_LOG\n| filter action_evtlog_event_id = 4726\n\n// Extração/normalização de campos do evento 4726 (Security)\n// - Subject*: executor (quem deletou)\n// - Target*: alvo (conta deletada)\n| alter\n    SubjectUserName   = action_evtlog_data_fields -> SubjectUserName,    // Usuário executor da exclusão\n    SubjectDomainName = action_evtlog_data_fields -> SubjectDomainName,  // Domínio do executor\n    TargetUserName    = action_evtlog_data_fields -> TargetUserName,     // Conta deletada\n    TargetDomainName  = action_evtlog_data_fields -> TargetDomainName,   // Domínio da conta deletada\n    TargetSid         = action_evtlog_data_fields -> TargetSid           // SID da conta deletada\n\n// Agrupamento temporal: consolida eventos em janelas de 1 hora para identificar deleção em massa\n| bin _time span = 1h\n\n// Agregação: contabiliza quantas contas distintas foram deletadas na janela\n// - users_deleted: número de usuários distintos deletados\n// - deleted_users/deleted_sids: evidências para investigação\n| comp\n    count_distinct(TargetUserName) as users_deleted,\n    values(TargetUserName) as deleted_users,\n    values(TargetSid) as deleted_sids\n  by _time, agent_hostname, SubjectDomainName, SubjectUserName\n\n// Threshold: dispara quando houver exclusão em massa (ajuste conforme baseline do ambiente)\n| filter users_deleted >= 5\n\n// Ordenação: destaca os maiores volumes de exclusão\n| sort desc users_deleted\n\n| filter (SubjectUserName != \"\"\"<IDENTITY_PROVISIONING_ACCOUNT>\"\"\") \n| filter (`deleted_users` not contains \"\"\"lenovo_tmp\"\"\")\n",
+    "is_enabled": false,
+    "description": "Detecta exclusão em massa de contas de usuário no Active Directory em um intervalo curto.",
+    "alert_name": "WIN_AD Multiple User Deletions",
+    "alert_category": "CREDENTIAL_ACCESS",
+    "alert_type": null,
+    "alert_description": "Foi detectada a exclusão em massa de contas de usuário no Active Directory no host $agent_hostname, realizada por $SubjectDomainName\\$SubjectUserName, o que pode indicar atividade administrativa não planejada ou ação maliciosa e deve ser validado imediatamente.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "SCHEDULED",
+    "search_window": "1 hours",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "SubjectUserName"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0040 - Impact": [
+        "T1485 - Data Destruction"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "AUTO",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

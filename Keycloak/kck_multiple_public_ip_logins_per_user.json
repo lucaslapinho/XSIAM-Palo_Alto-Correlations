@@ -1,0 +1,50 @@
+[
+  {
+    "rule_id": 122,
+    "name": "KCK_Multiple Public IP Logins per User",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: KCK_Multiple Public IP Logins per User\n// Vendor: Keycloak\n// Objective:\n// Detect activity associated with KCK_Multiple Public IP Logins per User.\n// Severity: SEV_040_HIGH\n// Category: CREDENTIAL_ACCESS\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0006 - Credential Access\n// Technique: T1110.004 - Brute Force: Credential Stuffing\n\nconfig case_sensitive = false\n| dataset = keycloak_keycloak_raw\n\n// LOGIN + extração de username/grant_type\n| filter type = \"LOGIN\"\n| alter\n    username   = json_extract_scalar(details_json_long_value, \"$.username\"),\n    grant_type = json_extract_scalar(details_json_long_value, \"$.grant_type\")\n| filter username != null and username != \"\"\n\n// Apenas IP público (remove RFC1918)\n| filter not (\n    ip_address ~= \"^10\\\\.\" or\n    ip_address ~= \"^192\\\\.168\\\\.\" or\n    ip_address ~= \"^172\\\\.(1[6-9]|2[0-9]|3[0-1])\\\\.\"\n)\n\n// Janela 1h e contagem de IPs distintos por usuário\n| bin _time span = 1h\n| comp\n    count() as logins,\n    count_distinct(ip_address) as ips_distintos,\n    values(ip_address) as lista_ips\n  by _time, username, client_id, realm_id, grant_type\n\n// Threshold: >= 5 IPs públicos distintos em 1h\n| filter ips_distintos >= 5\n| sort desc ips_distintos\n| fields _time, username, client_id, realm_id, grant_type, logins, ips_distintos, lista_ips\n",
+    "is_enabled": false,
+    "description": "Detecta comportamento anômalo no Keycloak quando o mesmo usuário realiza autenticações em uma janela de 1 hora a partir de múltiplos IPs públicos distintos (>= 5). Esse padrão é consistente com credential stuffing, abuso de credenciais válidas, uso de proxies/VPNs em automação ou anomalias de integração (ex.: clientes mal configurados).",
+    "alert_name": "KCK_Multiple Public IP Logins per User",
+    "alert_category": "CREDENTIAL_ACCESS",
+    "alert_type": null,
+    "alert_description": "Usuário $username autenticou no Keycloak a partir de $ips_distintos IPs públicos distintos na janela $_time (client_id=$client_id, realm=$realm_id, grant_type=$grant_type), totalizando $logins logins; IPs observados: $lista_ips — possível credential stuffing/abuso de credenciais.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "agent_hostname": null,
+      "action_local_ip": null,
+      "action_remote_ip": "lista_ips",
+      "action_remote_port": null,
+      "agent_device_domain": null,
+      "actor_effective_username": "username",
+      "actor_process_image_name": null,
+      "actor_process_image_path": null,
+      "actor_process_command_line": null,
+      "actor_process_image_sha256": null
+    },
+    "execution_mode": "SCHEDULED",
+    "search_window": "1 hours",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "username"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0006 - Credential Access": [
+        "T1110.004 - Brute Force: Credential Stuffing"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

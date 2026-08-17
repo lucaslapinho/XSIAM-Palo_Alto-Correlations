@@ -1,0 +1,45 @@
+[
+  {
+    "rule_id": 143,
+    "name": "GIT_Repository Unarchived",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: GIT_Repository Unarchived\n// Vendor: GIT\n// Objective:\n// Detect activity associated with GIT_Repository Unarchived.\n// Severity: SEV_040_HIGH\n// Category: OTHER\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0002 - Execution\n// Technique: T1677 - Poisoned Pipeline Execution\n\n// Fonte: logs brutos do GitHub\ndataset = github_github_raw\n\n// Apenas eventos de mudança de status do repositório\n| filter action in (\"archived\", \"unarchived\")\n\n// Normaliza os campos relevantes a partir do JSON do GitHub\n| alter\n    repo_full_name   = repository -> full_name,\n    repo_name        = repository -> name,\n    repo_archived    = repository -> archived,\n    org_login        = organization -> login,\n    actor_login      = sender -> login,\n    enterprise_slug  = enterprise -> slug,\n    evento_status    = action\n\n// Agrupa por repositório e verifica se houve mais de um status (archived + unarchived)\n| comp\n    count_distinct(evento_status) as qtd_status_diferentes,\n    values(evento_status)         as status_observados,\n    values(actor_login)           as atores,\n    values(org_login)             as organizacoes,\n    values(enterprise_slug)       as enterprises,\n    min(_time)                    as primeiro_evento,\n    max(_time)                    as ultimo_evento,\n    count(evento_status)          as total_eventos\n  by repo_full_name\n\n// Só interessa quando o repositório teve mudança de status (antes e depois)\n| filter qtd_status_diferentes > 1\n\n// Ordena pelos mais recentes\n| sort desc ultimo_evento\n\n| fields \n    repo_full_name,\n    status_observados,\n    qtd_status_diferentes,\n    total_eventos,\n    primeiro_evento,\n    ultimo_evento,\n    atores,\n    organizacoes,\n    enterprises\n",
+    "is_enabled": false,
+    "description": "Esta regra de correlação tem como objetivo identificar mudanças de status em repositórios do GitHub Enterprise, especificamente eventos em que um mesmo repositório é arquivado (archived) e posteriormente desarquivado (unarchived) — ou vice-versa — dentro de uma janela de tempo monitorada.",
+    "alert_name": "GIT_Repository Unarchived",
+    "alert_category": "OTHER",
+    "alert_type": null,
+    "alert_description": "Foi detectada uma mudança de status em um repositório do GitHub. no qual o mesmo repositório apresentou eventos consecutivos de archived e unarchived dentro da janela de correlação monitorada. Esse comportamento caracteriza uma transição efetiva de estado.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "endtime": "ultimo_evento",
+      "starttime": "primeiro_evento",
+      "status_progress": "status_observados",
+      "xdm_repository_name": "repo_full_name",
+      "actor_effective_username": "atores"
+    },
+    "execution_mode": "SCHEDULED",
+    "search_window": "1 hours",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "atores"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0002 - Execution": [
+        "T1677 - Poisoned Pipeline Execution"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

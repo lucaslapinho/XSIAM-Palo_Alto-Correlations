@@ -1,0 +1,37 @@
+[
+  {
+    "rule_id": 169,
+    "name": "CTI_Data Leak Issue Creator",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: CTI_Data Leak Issue Creator\n// Vendor: OpenCTI\n// Objective:\n// Detect activity associated with CTI_Data Leak Issue Creator.\n// Severity: SEV_040_HIGH\n// Category: CREDENTIAL_ACCESS\n// ============================================================\n\ndataset = opencti_incidents\n| fields\n    opencti_id,\n    severity,\n    alert_name,\n    alert_description,\n    mail,\n    source,\n    insert_timestamp\n",
+    "is_enabled": false,
+    "description": "Cria Issues no Cortex XSIAM a partir de incidentes de vazamento de credenciais extraídos do OpenCTI e gravados no dataset opencti_incidents.",
+    "alert_name": "$alert_name",
+    "alert_category": "CREDENTIAL_ACCESS",
+    "alert_type": null,
+    "alert_description": "Incidente de vazamento de credenciais identificado pelo OpenCTI.\n\nDescrição: $alert_description\nE-mail afetado: $mail\nOpenCTI ID: $opencti_id\nSeveridade: $severity\nOrigem: $source",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "logsource": "source",
+      "eventdescriptions": "alert_description",
+      "actor_effective_username": "mail"
+    },
+    "execution_mode": "SCHEDULED",
+    "search_window": "10 hours",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "1 days",
+    "suppression_fields": null,
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {},
+    "investigation_query_link": "dataset = opencti_incidents\r\n| filter opencti_id = \"$opencti_id\"\r\n| fields opencti_id, severity, alert_name, alert_description, mail, source, insert_timestamp,\r\n    severity ,\r\n    alert_name,\r\n    alert_description,\r\n    mail,\r\n    source,\r\n    insert_timestamp",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

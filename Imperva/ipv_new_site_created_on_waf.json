@@ -1,0 +1,43 @@
+[
+  {
+    "rule_id": 110,
+    "name": "IPV_New Site Created on WAF",
+    "severity": "SEV_020_LOW",
+    "xql_query": "// ============================================================\n// Rule: IPV_New Site Created on WAF\n// Vendor: Imperva\n// Objective:\n// Detect activity associated with IPV_New Site Created on WAF.\n// Severity: SEV_020_LOW\n// Category: EVASION\n// ============================================================\n// SANITIZED: Environment-specific values replaced with generic placeholders.\n// MITRE ATT&CK:\n// Tactic: TA0005 - Defense Evasion\n// Technique: T1562.001 - Impair Defenses: Disable or Modify Tools\n\n// Configuração inicial: comparações não diferenciam maiúsculas/minúsculas\n// Motivo: evita perder eventos por variações de caixa em campos como message\nconfig case_sensitive = false\n\n// Fonte de dados: logs brutos do Imperva WAF\n// O dataset 'imperva_waf_raw' contém eventos e auditorias geradas pelo WAF, incluindo ações administrativas (audit trail)\n| dataset = imperva_waf_raw\n\n// Extração de campos a partir do payload JSON do Imperva\n// Observação: o campo 'imperva' (ajuste se necessário) contém o JSON bruto do evento\n// - resource_name: nome do recurso/objeto afetado (ex.: hostname/site)\n// - account_name: nome da conta/tenant no Imperva\n// - executor: e-mail do usuário que executou a ação no console\n| alter\n    resource_name = json_extract_scalar(imperva, \"$.audit_trail.resource_name\"), // Ex.: <INTERNAL_DOMAIN_25>.br\n    account_name  = json_extract_scalar(imperva, \"$.ids.account_name\"),          // Ex.: BRA - <ORGANIZATION> - CWAF\n    executor      = user -> email                                                // Executor (usuário administrativo)\n\n// Filtro: retorna apenas eventos de criação de site\n// O campo 'message' descreve a ação realizada (ex.: \"Site created\")\n| filter message = \"Site created\"\n\n// Seleção dos campos relevantes para auditoria e notificação do alerta\n| fields\n    user,           // Objeto 'user' original do evento (pode conter id/nome/email)\n    executor,       // E-mail do executor\n    account_name,   // Conta/tenant no Imperva\n    resource_name,  // Recurso criado (site/hostname)\n    message,        // Mensagem do evento (ação)\n    imperva         // Payload bruto (útil para evidência e troubleshooting)\n",
+    "is_enabled": false,
+    "description": "Regra para monitoração de novos sites criados no WAF Imperva",
+    "alert_name": "IPV-New Site Created on WAF",
+    "alert_category": "EVASION",
+    "alert_type": null,
+    "alert_description": null,
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "eventdescriptions": "imperva",
+      "agent_device_domain": "resource_name",
+      "actor_effective_username": "executor"
+    },
+    "execution_mode": "REAL_TIME",
+    "search_window": null,
+    "simple_schedule": null,
+    "timezone": null,
+    "crontab": null,
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "executor"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0005 - Defense Evasion": [
+        "T1562.001 - Impair Defenses: Disable or Modify Tools"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

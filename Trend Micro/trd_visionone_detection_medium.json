@@ -1,0 +1,49 @@
+[
+  {
+    "rule_id": 149,
+    "name": "TRD_VisionOne_Detection_Medium",
+    "severity": "SEV_030_MEDIUM",
+    "xql_query": "// ============================================================\n// Rule: TRD_VisionOne_Detection_Medium\n// Vendor: Trend Micro\n// Objective:\n// Detect activity associated with TRD_VisionOne_Detection_Medium.\n// Severity: SEV_030_MEDIUM\n// Category: OTHER\n// ============================================================\n// SANITIZED: Environment-specific values replaced with generic placeholders.\n// MITRE ATT&CK:\n// Tactic: TA0002 - Execution\n// Technique: T1153 - Source\n// Technique: T1064 - Scripting\n// Tactic: TA0001 - Initial Access\n// Technique: T1566 - Phishing\n\ndataset = trend_micro_vision_one_raw\n| filter cat = 50\n| alter\n    // ============ IDENTIFICAÇÃO ============\n    alert_type        = coalesce(pname, alertprovider, \"Vision One Detection\"),\n    alert_name        = coalesce(msg, category, description),\n    trend_event_id    = eventid,\n    trend_rule_id     = to_string(ruleId),\n    trend_event_uuid  = uuid,\n    trend_log_key     = logKey,\n    trend_event_type  = event_type,\n    severity_label    = \"MEDIUM\",\n    severity_num      = cat,\n    event_time        = eventTime,\n    event_rt          = rt,\n\n    // ============ HOST / ENDPOINT (campos dedicados da API) ============\n    endpoint_hostname = coalesce(endpointhostname, shost, dhost),\n    endpoint_ip       = arrayindex(regextract(to_string(endpointip), \"\\d{1,3}(?:\\.\\d{1,3}){3}\"), 0),\n    endpoint_guid     = endpointguid,\n    endpoint_host_id  = hostId,\n    endpoint_status   = endpointstatus,\n    endpoint_mac      = endpointmacaddress,\n    endpoint_os       = osName,\n\n    // ============ USUÁRIO (regex tolerante a SISTEMA/SYSTEM/DOMAIN\\user) ============\n    user              = arrayindex(regextract(to_string(duser), \"[\\w\\-\\.\\\\\\\\@]+\"), 0),\n\n    // ============ WINDOWS EVENT ============\n    win_event_id      = winEventId,\n    win_event_groups  = groups,\n\n    // ============ PROCESSO ============\n    process_name      = coalesce(deviceprocessname, sproc),\n    process_pid       = processPid,\n    parent_pid        = parentPid,\n\n    // ============ TAGS / MITRE ============\n    all_tags          = arraystring(regextract(to_string(tags), \"[A-Z]+\\.[A-Z0-9\\.]+\"), \",\"),\n    mitre_techniques  = arraystring(regextract(to_string(tags), \"MITRE\\.[A-Z0-9\\.]+\"), \",\"),\n    xsae_tags         = arraystring(regextract(to_string(tags), \"XSAE\\.[A-Z0-9]+\"), \",\"),\n\n    // ============ CONTEXTO ADICIONAL ============\n    product_name      = mpname,\n    product_version   = mpver,\n    detection_type    = detectiontype,\n    activity          = activity,\n    action_result     = actresult,\n    domain_name       = domainname,\n    blocking          = blocking,\n\n    // ============ AUDIT LOG (quando aplicável) ============\n    audit_action      = act,\n    audit_app         = app,\n    audit_category    = category,\n\n    // ============ NETWORK (quando aplicável) ============\n    src_ip            = src,\n    dst_ip            = dst,\n    src_port          = spt,\n    dst_port          = dpt,\n    direction         = direction,\n\n    // ============ DEEP LINK PARA CONSOLE TREND (para ver remarks completo) ============\n    trend_console_url = concat(\n        \"https://portal.xdr.trendmicro.com/index.html#/app/oat/detail/\",\n        coalesce(eventid, uuid, \"unknown\")\n    )\n\n| fields _time, event_time, event_rt, severity_label, severity_num,\n         alert_type, alert_name, trend_event_id, trend_rule_id, trend_event_uuid, trend_event_type,\n         endpoint_hostname, endpoint_ip, endpoint_guid, endpoint_host_id, endpoint_status, endpoint_os,\n         user, win_event_id, win_event_groups,\n         process_name, process_pid, parent_pid,\n         all_tags, mitre_techniques, xsae_tags,\n         product_name, product_version, detection_type, activity, action_result, domain_name, blocking,\n         audit_action, audit_app, audit_category,\n         src_ip, dst_ip, src_port, dst_port, direction,\n         trend_console_url\n",
+    "is_enabled": false,
+    "description": "Captura todos os eventos de severidade Medium (cat=50) do feed API do Trend Vision One, incluindo OAT (Observed Attack Technique), Workbench e Audit Log. Dataset: trend_micro_vision_one_raw. Owner: SOC <ORGANIZATION> | Source: TrendMicroVisionOneEventCollector",
+    "alert_name": "TRD_VisionOne_Detection_Medium",
+    "alert_category": "OTHER",
+    "alert_type": null,
+    "alert_description": "Foi identificado um evento de severidade Medium proveniente do Trend Vision One, reportado ao Cortex XSIAM via integração oficial.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "severity": "severity_label",
+      "reportname": "alert_name",
+      "processpaths": "process_name",
+      "resourcetype": "alert_type",
+      "agent_hostname": "endpoint_hostname"
+    },
+    "execution_mode": "REAL_TIME",
+    "search_window": null,
+    "simple_schedule": null,
+    "timezone": null,
+    "crontab": null,
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "endpoint_hostname"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0002 - Execution": [
+        "T1153 - Source",
+        "T1064 - Scripting"
+      ],
+      "TA0001 - Initial Access": [
+        "T1566 - Phishing"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

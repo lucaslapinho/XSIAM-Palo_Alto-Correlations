@@ -1,0 +1,42 @@
+[
+  {
+    "rule_id": 73,
+    "name": "WIN_PowerShell Backup & Log Tampering",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: WIN_PowerShell Backup & Log Tampering\n// Vendor: Windows\n// Objective:\n// Detect activity associated with WIN_PowerShell Backup & Log Tampering.\n// Severity: SEV_040_HIGH\n// Category: TAMPERING\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0040 - Impact\n// Technique: T1490 - Inhibit System Recovery\n// Tactic: TA0005 - Defense Evasion\n// Technique: T1070.001 - Indicator Removal on Host: Clear Windows Event Logs\n\n// Fonte de dados: eventos do Cortex XDR\ndataset = xdr_data  \n\n// Seleção dos campos relevantes para análise de execução de processos\n| fields _time,                          // Data e hora do evento\n         agent_hostname,                 // Host de origem\n         actor_effective_username,       // Usuário que executou o processo\n         actor_process_image_name,       // Nome do processo pai (neste caso, powershell.exe)\n         actor_process_command_line,     // Linha de comando do processo pai\n         action_process_image_name,      // Nome do processo disparado pelo pai\n         action_process_image_command_line, // Linha de comando do processo filho\n         event_type,                     // Tipo de evento (PROCESS)\n         actor_process_os_pid            // PID do processo pai\n\n// Filtro para manter apenas eventos de criação de processo (PROCESS)\n| filter event_type = ENUM.PROCESS  \n\n// Filtro para identificar execução do PowerShell (processo pai)\n| filter lowercase(actor_process_image_name) = \"powershell.exe\"  \n\n// Filtro para detectar processos críticos disparados pelo PowerShell\n// - wevutil.exe → manipulação de logs de eventos\n// - wbadmin.exe → gerenciamento de backup\n// - wmic.exe → consultas WMI\n// - bcedit.exe → configuração de boot\n// - vssadmin.exe → gerenciamento de shadow copies\n| filter lowercase(action_process_image_name) in (\"wevutil.exe\",\n                                                  \"wbadmin.exe\",\n                                                  \"wmic.exe\",\n                                                  \"bcedit.exe\",\n                                                  \"vssadmin.exe\")  \n\n// Filtro para restringir ao host CORTEX (ponto específico de investigação)\n| filter agent_hostname = \"CORTEX\"  \n\n// Filtro para identificar linhas de comando que indicam:\n// - Desativação de recuperação de boot\n// - Exclusão de shadow copies e backups\n// - Limpeza de logs do sistema e de segurança\n| filter lowercase(action_process_image_command_line) ~= \"/set {default} recoveryenabled no|/set {default} bootstatuspolicy ignoreallfailures|delete shadows /all /quiet|shadowcopy delete /noninteractive|stop job -quiet|disable backup -quiet|delete backup -keepversions:0 -quiet|delete systembackup -keepversions:0 -quiet|delete catalog -quiet|cl application|cl system|security|cl setup\" \n\n// Agregação (comp) para correlacionar a atividade\n// - Agrupa por host, processo pai e PID\n// - Lista todos os comandos (CLIs) e processos distintos disparados\n// - Conta quantidade de comandos distintos (dc_cli)\n// - Conta quantidade de processos distintos (dc_process_name)\n| comp values(action_process_image_command_line) as CLIs,\n       values(action_process_image_name) as process_name,\n       count_distinct(action_process_image_command_line) as dc_cli,\n       count_distinct(action_process_image_name) as dc_process_name\n  by agent_hostname, actor_process_image_name, actor_process_command_line, actor_process_os_pid  \n\n// Mantém apenas casos onde houve uso de ≥3 comandos e ≥3 processos distintos\n// → sinal forte de atividade maliciosa coordenada\n| filter dc_cli >= 3 and dc_process_name >= 3\n",
+    "is_enabled": false,
+    "description": "Este alerta identifica quando o PowerShell é utilizado para executar em sequência múltiplos utilitários administrativos do Windows, como wevutil.exe, wbadmin.exe, wmic.exe, bcedit.exe e vssadmin.exe, com comandos que têm como objetivo apagar logs, desativar recuperação do sistema e remover backups/shadow copies.",
+    "alert_name": "WIN_PowerShell Backup & Log Tampering",
+    "alert_category": "TAMPERING",
+    "alert_type": null,
+    "alert_description": "Foi detectado o uso do PowerShell para executar múltiplos utilitários administrativos do Windows (wevutil.exe, wbadmin.exe, wmic.exe, bcedit.exe, vssadmin.exe) com comandos destinados a apagar logs, desativar recuperação do sistema e remover backups/shadow copies, comportamento comumente associado a ataques de ransomware.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "SCHEDULED",
+    "search_window": "1 hours",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "agent_hostname"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0040 - Impact": [
+        "T1490 - Inhibit System Recovery"
+      ],
+      "TA0005 - Defense Evasion": [
+        "T1070.001 - Indicator Removal on Host: Clear Windows Event Logs"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "AUTO",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

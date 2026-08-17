@@ -1,0 +1,43 @@
+[
+  {
+    "rule_id": 146,
+    "name": "MS_Teams Federation Settings Modified",
+    "severity": "SEV_050_CRITICAL",
+    "xql_query": "// ============================================================\n// Rule: MS_Teams Federation Settings Modified\n// Vendor: Microsoft 365\n// Objective:\n// Detect activity associated with MS_Teams Federation Settings Modified.\n// Severity: SEV_050_CRITICAL\n// Category: TAMPERING\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0005 - Defense Evasion\n// Technique: T1484.002 - Domain Policy Modification: Domain Trust Modification\n\n// Title: Microsoft Teams Tenant Federation Settings Modified\n// Description:\n// Detecta alterações em configurações sensíveis de federação e acesso externo do Microsoft Teams,\n// incluindo comunicação com usuários federados, consumidores Teams, domínios permitidos/bloqueados,\n// trial tenants e parâmetros de controle de confiança entre tenants.\n//\n// Data Source: saas_audit_logs\n// Workload: MicrosoftTeams\n// Operation: TeamsAdminAction\n// MITRE ATT&CK:\n// - TA0107 - Defense Impairment\n// - TA0004 - Privilege Escalation\n// - T1484.002 - Domain or Tenant Policy Modification: Trust Modification\n\nconfig case_sensitive = false\n\n| dataset = saas_audit_logs\n\n// Pré-filtro para reduzir o volume de eventos processados.\n// Busca somente logs relacionados a ações administrativas no Microsoft Teams,\n// especificamente alterações em TenantFederationSettings.\n| filter raw_log contains \"MicrosoftTeams\"\n    and raw_log contains \"TeamsAdminAction\"\n    and raw_log contains \"TenantFederationSettings\"\n    and raw_log contains \"ModifiedProperties\"\n\n// Extração dos principais campos do evento bruto.\n// Esses campos ajudam a identificar quem realizou a alteração,\n// onde a alteração ocorreu e qual objeto/política foi modificada.\n| alter\n    creation_time = json_extract_scalar(raw_log, \"$.CreationTime\"),\n    operation = json_extract_scalar(raw_log, \"$.Operation\"),\n    workload = json_extract_scalar(raw_log, \"$.Workload\"),\n    result_status = json_extract_scalar(raw_log, \"$.ResultStatus\"),\n    user_id = json_extract_scalar(raw_log, \"$.UserId\"),\n    user_key = json_extract_scalar(raw_log, \"$.UserKey\"),\n    client_ip = json_extract_scalar(raw_log, \"$.ClientIP\"),\n    object_id = json_extract_scalar(raw_log, \"$.ObjectId\"),\n    admin_action_detail = json_extract_scalar(raw_log, \"$.AdminActionDetail\"),\n    client_application = json_extract_scalar(raw_log, \"$.ClientApplication\"),\n    user_claims = json_extract_scalar(raw_log, \"$.UserClaims\"),\n    modified_properties = json_extract_array(raw_log, \"$.ModifiedProperties\")\n\n// Considera apenas alterações concluídas com sucesso.\n| filter result_status = \"Succeeded\"\n\n// Expande o array ModifiedProperties.\n// Cada propriedade alterada passa a ser tratada como um evento individual,\n// permitindo identificar exatamente qual parâmetro foi alterado.\n| arrayexpand modified_properties\n\n// Extração dos detalhes da propriedade modificada.\n// property_name: nome do parâmetro alterado.\n// old_value: valor anterior.\n// new_value: novo valor configurado.\n| alter\n    property_name = json_extract_scalar(to_json_string(modified_properties), \"$.Name\"),\n    old_value = json_extract_scalar(to_json_string(modified_properties), \"$.OldValue\"),\n    new_value = json_extract_scalar(to_json_string(modified_properties), \"$.NewValue\")\n\n// Monitora somente parâmetros sensíveis de federação e acesso externo do Teams.\n// Esses parâmetros podem impactar comunicação externa, confiança entre tenants,\n// acesso de usuários federados e interação com usuários consumidores do Teams.\n| filter property_name in (\n    \"BlockedDomains\",\n    \"AllowedTrialTenantDomains\",\n    \"AllowFederatedUsers\",\n    \"AllowTeamsConsumer\",\n    \"AllowTeamsConsumerInbound\",\n    \"TreatDiscoveredPartnersAsUnverified\",\n    \"SharedSipAddressSpace\",\n    \"RestrictTeamsConsumerToExternalUserProfiles\",\n    \"BlockAllSubdomains\",\n    \"ExternalAccessWithTrialTenants\",\n    \"DomainBlockingForMoAdminsInTeams\"\n)\n\n// Garante que a propriedade realmente teve alteração de valor.\n// Evita gerar alerta quando o campo aparece no log, mas não representa mudança efetiva.\n| filter old_value != new_value\n\n// Campos finais para investigação e composição do alerta.\n| fields\n    _time,\n    creation_time,\n    workload,\n    operation,\n    result_status,\n    user_id,\n    user_key,\n    client_ip,\n    object_id,\n    admin_action_detail,\n    client_application,\n    user_claims,\n    property_name,\n    old_value,\n    new_value\n\n| sort desc _time\n",
+    "is_enabled": false,
+    "description": "Detecta alterações em configurações sensíveis de federação e acesso externo do Microsoft Teams, incluindo domínios bloqueados/permitidos, comunicação com usuários federados, consumidores Teams, acesso inbound de consumidores e parâmetros de trial tenants. A alteração desses parâmetros pode impactar diretamente a exposição externa, colaboração entre tenants e postura de segurança do ambiente Microsoft Teams.",
+    "alert_name": "MS_Teams Federation Settings Modified",
+    "alert_category": "TAMPERING",
+    "alert_type": null,
+    "alert_description": "Detectada alteração em configuração sensível do Microsoft Teams. O usuário $user_id alterou o parâmetro $property_name de $old_value para $new_value , a partir do IP $client_ip. Validar se a alteração foi autorizada e se está alinhada à política corporativa de federação e acesso externo do Teams.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "tenantname": "object_id",
+      "eventdescriptions": "property_name",
+      "actor_effective_username": "user_id"
+    },
+    "execution_mode": "SCHEDULED",
+    "search_window": "1 hours",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "user_id"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0005 - Defense Evasion": [
+        "T1484.002 - Domain Policy Modification: Domain Trust Modification"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

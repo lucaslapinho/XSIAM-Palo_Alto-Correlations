@@ -1,0 +1,42 @@
+[
+  {
+    "rule_id": 109,
+    "name": "SLP_IDN Source Created",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: SLP_IDN Source Created\n// Vendor: SailPoint\n// Objective:\n// Detect activity associated with SLP_IDN Source Created.\n// Severity: SEV_040_HIGH\n// Category: CREDENTIAL_ACCESS\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0006 - Credential Access\n// Technique: T1556.003 - Modify Authentication Process: Pluggable Authentication Modules\n\n// Configuração inicial: comparações não diferenciam maiúsculas/minúsculas\nconfig case_sensitive = false\n\n// Fonte de dados: logs do SailPoint IdentityNow\n// O dataset 'sailpoint_identitynow_raw' contém eventos de auditoria e atividades administrativas\n// geradas pela plataforma (ex.: atualizações de fontes/conectores, mudanças de configuração, etc.)\n| dataset = sailpoint_identitynow_raw\n\n// Criação/normalização de campos para facilitar leitura e correlação\n// - 'actor -> name' identifica o executor (usuário/identidade que realizou a ação)\n// - '_metadata -> triggerId' contém a categoria/tipo do evento (ex.: \"idn:source-updated\")\n| alter\n    executor = actor -> name,                 // Executor da ação no IdentityNow\n    category_raw = _metadata -> triggerId     // Categoria original do evento (com prefixo \"idn:\")\n\n// Remoção do prefixo \"idn:\" da categoria\n// Objetivo: padronizar a categoria para uso em alertas e dashboards\n| alter\n    category = replace(to_string(category_raw), \"idn:\", \"\")\n\n// Filtro: monitora eventos de atualização de Source (fonte/conector) no IdentityNow\n// \"source-created\" indica criação de conector/fonte\n| filter category = \"source-created\"\n\n// Seleção dos campos relevantes para auditoria e notificação do alerta\n| fields\n    category,            // Categoria normalizada do evento (sem \"idn:\")\n    executor,            // Usuário que executou a alteração\n    connector,           // Conector/fonte afetada (quando disponível no evento)\n    name,                // Nome do objeto/fonte impactada\n    type,                // Tipo do objeto alterado (ex.: source/connector)\n    attributesUpdated    // Lista/descrição dos atributos que foram modificados\n",
+    "is_enabled": false,
+    "description": "Regra de monitoração para criações de sources do SailPoint.",
+    "alert_name": "SLP_IDN Source Created",
+    "alert_category": "CREDENTIAL_ACCESS",
+    "alert_type": null,
+    "alert_description": "Foi detectada a criação de um Source/Connector no SailPoint IdentityNow, realizada por $executor . Essa alteração pode impactar integrações, coleta de identidades e controles de provisionamento. Verifique o objeto afetado ( $name / $connector ) e os atributos modificados ( $attributesUpdated ) para confirmar se a mudança é legítima.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "resourcename": "connector",
+      "actor_effective_username": "executor"
+    },
+    "execution_mode": "REAL_TIME",
+    "search_window": null,
+    "simple_schedule": null,
+    "timezone": null,
+    "crontab": null,
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "executor"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0006 - Credential Access": [
+        "T1556.003 - Modify Authentication Process: Pluggable Authentication Modules"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

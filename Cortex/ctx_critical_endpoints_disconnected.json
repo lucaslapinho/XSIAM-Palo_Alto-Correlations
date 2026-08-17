@@ -1,0 +1,38 @@
+[
+  {
+    "rule_id": 87,
+    "name": "CTX_Critical Endpoints Disconnected",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: CTX_Critical Endpoints Disconnected\n// Vendor: Cortex\n// Objective:\n// Detect activity associated with CTX_Critical Endpoints Disconnected.\n// Severity: SEV_040_HIGH\n// Category: OTHER\n// ============================================================\n\n// Configuração inicial: define que as comparações diferenciam maiúsculas/minúsculas  \nconfig case_sensitive = true  \n\n// Fonte de dados: dataset principal de inventário de endpoints  \n// O dataset 'endpoints' contém informações de status, último check-in e nome do host  \n| dataset = endpoints  \n\n// Seleção dos campos relevantes para análise de conectividade dos agentes  \n| fields \n    endpoint_name,       // Nome do endpoint (hostname reportado pelo agente XDR)  \n    last_seen,           // Último momento em que o agente enviou telemetria  \n    endpoint_status      // Status atual do agente (Connected / Disconnected / Uninstalled)  \n\n// Filtro para retornar apenas endpoints com status \"DISCONNECTED\"  \n| filter endpoint_status = \"DISCONNECTED\"  \n\n// 🔹 Join com dataset de endpoints críticos  \n// Retorna apenas endpoints cujo hostname esteja listado no dataset 'endpoints_critical'  \n| join conflict_strategy = both type = inner (\n    dataset = endpoints_critical\n    | fields hostname as hostname_critico\n) as CR CR.hostname_critico = endpoint_name  \n\n// 🔹 Join adicional com dataset de endpoints SI (sensíveis)  \n// Retorna também endpoints que constem no dataset 'endpoints_si'  \n| join conflict_strategy = both type = inner (\n    dataset = endpoints_si\n    | fields hostname as hostname_si\n) as SI SI.hostname_si = endpoint_name  \n\n// 🔹 Exibe os campos finais relevantes para monitoramento  \n| fields \n    endpoint_name as Hostname,     // Nome do host  \n    endpoint_status as Status,     // Status atual do agente  \n    last_seen as Ultima_Conexao    // Último check-in do agente\n",
+    "is_enabled": false,
+    "description": "Regra para monitoração de alertas criticos no cortex. Caso o endponts aparenta como disconnected ele deverá gerar um alerta.",
+    "alert_name": "CTX_Critical Endpoints Disconnected",
+    "alert_category": "OTHER",
+    "alert_type": "Collection",
+    "alert_description": "Endpoint crítico ou sensível $hostname identificado como desconectado do Cortex XDR, indicando perda de visibilidade e possível risco de segurança.",
+    "alert_domain": "DOMAIN_HEALTH",
+    "alert_fields": {
+      "agent_hostname": "Hostname",
+      "agent_device_domain": "Status"
+    },
+    "execution_mode": "SCHEDULED",
+    "search_window": "10 minutes",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "4 hours",
+    "suppression_fields": [
+      "Hostname"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {},
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

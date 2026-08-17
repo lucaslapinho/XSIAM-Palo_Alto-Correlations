@@ -1,0 +1,43 @@
+[
+  {
+    "rule_id": 177,
+    "name": "EPM_Repeated Denied or Blocked Privilege Attempts",
+    "severity": "SEV_030_MEDIUM",
+    "xql_query": "// ============================================================\n// Rule: EPM_Repeated Denied or Blocked Privilege Attempts\n// Vendor: BeyondTrust\n// Objective:\n// Detect activity associated with EPM_Repeated Denied or Blocked Privilege Attempts.\n// Severity: SEV_030_MEDIUM\n// Category: PRIVILEGE_ESCALATION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0004 - Privilege Escalation\n// Technique: T1548 - Abuse Elevation Control Mechanism\n\nconfig case_sensitive = false\n\n| dataset = beyondtrust_epm_raw\n\n| filter is_epm_event = true\n| filter is_epm_privilege_event = true\n| filter epm_event_code = 116\n\n| alter\n    epm_process_command_line = json_extract_scalar(process, \"$.command_line\"),\n    epm_parent_process_name = json_extract_scalar(process, \"$.parent.name\")\n\n// Group repeated blocks in the correlation rule search window\n| comp\n    count() as blocked_count,\n    min(_time) as first_seen,\n    max(_time) as last_seen,\n    values(process_name) as blocked_applications,\n    values(process_path) as blocked_paths,\n    values(epm_process_command_line) as blocked_commands,\n    values(epm_parent_process_name) as parent_processes\n  by epm_username, endpoint_name\n\n| filter blocked_count >= 5\n\n| filter (`blocked_paths` not contains \"\"\"c:\\\\windows\\\\system32\\\\backgroundtaskhost.exe\"\"\") \n\n| fields\n    first_seen,\n    last_seen,\n    blocked_count,\n    epm_username,\n    endpoint_name,\n    blocked_applications,\n    blocked_paths,\n    blocked_commands,\n    parent_processes\n",
+    "is_enabled": false,
+    "description": "Detectar repetição de processos bloqueados pelo EPM para o mesmo usuário e endpoint em curto intervalo. Usa Event ID 116, agrega por epm_username + endpoint_name, coleta aplicações e caminhos e alerta quando blocked_count >= 3 na janela de execução de 30 minutos.",
+    "alert_name": "EPM_Repeated Denied or Blocked Privilege Attempts",
+    "alert_category": "PRIVILEGE_ESCALATION",
+    "alert_type": null,
+    "alert_description": "Foram identificados $blocked_count processos bloqueados pelo BeyondTrust EPM para o usuário $epm_username no endpoint $endpoint_name , entre $first_seen e $last_seen . O SOC deve validar as aplicações, caminhos e comandos envolvidos para identificar tentativa de contorno de política ou repetição legítima.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "agent_hostname": "endpoint_name",
+      "actor_effective_username": "epm_username"
+    },
+    "execution_mode": "SCHEDULED",
+    "search_window": "30 minutes",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "epm_username",
+      "endpoint_name"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0004 - Privilege Escalation": [
+        "T1548 - Abuse Elevation Control Mechanism"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

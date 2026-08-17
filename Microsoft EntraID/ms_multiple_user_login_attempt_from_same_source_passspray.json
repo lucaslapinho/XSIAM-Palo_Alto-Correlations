@@ -1,0 +1,43 @@
+[
+  {
+    "rule_id": 3,
+    "name": "MS_Multiple User Login Attempt from Same Source - PassSpray",
+    "severity": "SEV_030_MEDIUM",
+    "xql_query": "// ============================================================\n// Rule: MS_Multiple User Login Attempt from Same Source - PassSpray\n// Vendor: Microsoft EntraID\n// Objective:\n// Detect activity associated with MS_Multiple User Login Attempt from Same Source - PassSpray.\n// Severity: SEV_030_MEDIUM\n// Category: CREDENTIAL_ACCESS\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0006 - Credential Access\n// Technique: T1110.003 - Brute Force: Password Spraying\n\ndataset = msft_azure_raw\n| filter operationName = \"Sign-in activity\" and category = \"SignInLogs\"\n| alter result_code = to_integer(resultType),\n        result_desc = resultDescription,\n        user_dst = properties -> userPrincipalName,\n        appDisplayName = properties -> appDisplayName,\n        userDisplayName = properties -> userDisplayName,\n        userAgent = properties -> userAgent,\n        OS = json_extract_scalar(properties, \"$.deviceDetail.operatingSystem\"),\n        result = trim(arrayindex(regextract(properties, \"result\\\":\\\"([^,]+)\"), 0), \"\\\"\")\n| iploc callerIpAddress loc_country,\n        loc_asn_org\n//| filter result_code != 0\n| comp earliest(_time) as FirstEventTime,\n       latest(_time) as LatestEventTime,\n       values(userDisplayName) as username,\n       values(user_dst) as user_dst,\n       values(appDisplayName) as server,\n       values(result_code) as result_code,\n       values(result_desc) as result_desc,\n       values(userAgent) as user_agent,\n       values(loc_country) as country,\n       values(loc_asn_org) as org,\n       values(OS) as OS,\n       values(result) as result,\n       count() as matched_events by _time,\n       callerIpAddress\n| filter array_length(user_dst) >= 10\n| alter aggregation_criteria = \"ildestinationuser\",\n        duplicate_alert_count = subtract(floor(divide(matched_events, 5)), 1),\n        event_time = format_timestamp(\"%Y-%m-%d %H:%M:%S\", _time)\n",
+    "is_enabled": false,
+    "description": "Múltiplas tentativas de autenticação malsucedidas provenientes da mesma origem, direcionadas a cinco ou mais contas de usuário.",
+    "alert_name": "MS_Multiple User Login Attempt from Same Source - PassSpray",
+    "alert_category": "CREDENTIAL_ACCESS",
+    "alert_type": null,
+    "alert_description": "Foram detectadas múltiplas tentativas de autenticação malsucedidas originadas do país $loc_country , partindo do endereço IP $callerIpAddress , direcionadas a cinco ou mais contas distintas. Entre os usuários impactados estão $user_dst ( $userDisplayName ), utilizando o agente de acesso $userAgent. Esse comportamento pode indicar atividade de força bruta ou movimentação lateral em tentativa de acesso não autorizado.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "action_remote_ip": "callerIpAddress",
+      "actor_effective_username": "username",
+      "actor_process_image_path": "user_agent"
+    },
+    "execution_mode": "SCHEDULED",
+    "search_window": "1 hours",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "callerIpAddress"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0006 - Credential Access": [
+        "T1110.003 - Brute Force: Password Spraying"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

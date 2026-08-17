@@ -1,0 +1,40 @@
+[
+  {
+    "rule_id": 43,
+    "name": "GIT_Repository Created",
+    "severity": "SEV_020_LOW",
+    "xql_query": "// ============================================================\n// Rule: GIT_Repository Created\n// Vendor: GIT\n// Objective:\n// Detect activity associated with GIT_Repository Created.\n// Severity: SEV_020_LOW\n// Category: OTHER\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0010 - Exfiltration\n// Technique: T1567 - Exfiltration Over Web Service\n// Technique: T1567.001 - Exfiltration Over Web Service: Exfiltration to Code Repository\n\n// Fonte de dados: logs brutos do GitHub\ndataset = github_github_raw  \n\n// Filtra apenas eventos onde a ação registrada seja \"created\"\n// (indica criação de um novo repositório)\n| filter action = \"created\"  \n\n// Criação de campos derivados para facilitar a leitura dos resultados\n| alter\n    user = sender -> login,                   // Usuário que realizou a criação\n    enterprise_name = enterprise -> name,     // Nome da organização/enterprise no GitHub\n    git_url = repository -> git_url,          // URL do repositório criado\n    private = repository -> private,          // Se o repositório é privado ou público\n    description = repository -> description   // Descrição fornecida no repositório\n\n// Seleção dos campos principais para exibição\n| fields user, enterprise_name, git_url, private, description\n",
+    "is_enabled": false,
+    "description": "Esta detecção tem como objetivo identificar a criação de repositórios no GitHub a partir de endpoints corporativos. A criação de repositórios públicos ou privados pode ser legítima em atividades de desenvolvimento, mas também pode indicar tentativas de exfiltração de dados, armazenamento não autorizado de código-fonte ou uso indevido de repositórios externos. A análise do usuário, conteúdo e contexto da ação é essencial para avaliar possíveis riscos à segurança da informação.",
+    "alert_name": "GIT_Repository Created",
+    "alert_category": "OTHER",
+    "alert_type": null,
+    "alert_description": "Alerta gerado para o usuário $user . Detecção relacionada ao repositório $git_url . Detalhes: $description .",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "actor_effective_username": "user"
+    },
+    "execution_mode": "REAL_TIME",
+    "search_window": null,
+    "simple_schedule": null,
+    "timezone": null,
+    "crontab": null,
+    "suppression_enabled": false,
+    "suppression_duration": null,
+    "suppression_fields": null,
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0010 - Exfiltration": [
+        "T1567 - Exfiltration Over Web Service",
+        "T1567.001 - Exfiltration Over Web Service: Exfiltration to Code Repository"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

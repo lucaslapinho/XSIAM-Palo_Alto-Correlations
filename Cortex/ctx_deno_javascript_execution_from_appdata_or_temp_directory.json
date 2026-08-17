@@ -1,0 +1,39 @@
+[
+  {
+    "rule_id": 154,
+    "name": "CTX_Deno JavaScript Execution from AppData or Temp Directory",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: CTX_Deno JavaScript Execution from AppData or Temp Directory\n// Vendor: Cortex\n// Objective:\n// Detect activity associated with CTX_Deno JavaScript Execution from AppData or Temp Directory.\n// Severity: SEV_040_HIGH\n// Category: EXECUTION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0002 - Execution\n// Technique: T1059.007 - Command and Scripting Interpreter: JavaScript\n\n// Title: CTX - Deno JavaScript Execution from AppData or Temp Directory\n// Description: Detecta Deno executando arquivos JavaScript/TypeScript localizados em AppData/Roaming/Temp.\n// Esse comportamento pode indicar payload baixado e armazenado em diretório de usuário para execução local.\n// MITRE ATT&CK: T1059.007 (JavaScript), T1036 (Masquerading)\n//\n// NOTA TH: Esta regra complementa CTX_GEN_002 (execução remota). Aqui o foco é payload local — o script\n// já foi baixado e está em TEMP/AppData, pronto para execução ou persistência.\n// Cenário típico: stage 1 dropper baixa .js para %TEMP%, executa com deno.exe --allow-all.\n// Overlap intencional com CTX_GEN_002: se ambos dispararem no mesmo host, elevar a prioridade do caso.\n//\n// CORREÇÃO [v2]: Removido explorer.exe e conhost.exe da lista de parents válidos.\n// explorer.exe chamando deno.exe de TEMP é igualmente suspeito e não deve ser excluído.\n// conhost.exe não spawna processos diretamente — aparece como intermediário de console, não como pai real.\n// actor_cmd adicionado ao filtro de parent suspeito para cobertura de scripts ofuscados.\n\nconfig case_sensitive = false\n| dataset = xdr_data\n\n| filter agent_os_type = ENUM.AGENT_OS_WINDOWS\n| filter event_type = ENUM.PROCESS\n    and event_sub_type = ENUM.PROCESS_START\n\n| fields\n    _time,\n    agent_hostname,\n    agent_ip_addresses,\n    actor_effective_username,\n    actor_process_image_name,\n    actor_process_image_path,\n    actor_process_command_line,\n    action_process_image_name,\n    action_process_image_path,\n    action_process_image_command_line,\n    action_process_image_sha256,\n    causality_actor_process_image_name,\n    causality_actor_process_command_line\n\n| alter action_cmd = lowercase(action_process_image_command_line)\n| alter actor_cmd = lowercase(actor_process_command_line)\n\n// Filtro 1: processo é deno.exe\n| filter action_process_image_name = \"deno.exe\"\n\n// Filtro 2: script .js ou .ts em diretório de usuário\n| filter action_cmd ~= \"\\\\.(js|mjs|ts)\"\n| filter action_cmd ~= \"(\\\\\\\\appdata\\\\\\\\roaming\\\\\\\\|\\\\\\\\appdata\\\\\\\\local\\\\\\\\temp\\\\\\\\|%temp%|\\\\\\\\temp\\\\\\\\)\"\n\n// Filtro 3: execução com permissões amplas (qualquer flag de permissão é suspeita neste contexto)\n| filter action_cmd ~= \"(^|\\\\s)--allow-all(\\\\s|$)\"\n    or action_cmd ~= \"(^|\\\\s)-[aA](\\\\s|$)\"\n    or action_cmd ~= \"(--allow-read|--allow-run|--allow-net|--allow-write)\"\n\n// Filtro 4: parent process suspeito — scripting engines e shells são os vetores mais comuns\n// Nota: explorer.exe foi removido — Deno de TEMP via explorer é igualmente anômalo\n| filter actor_process_image_name in (\"powershell.exe\", \"pwsh.exe\", \"cmd.exe\", \"wscript.exe\", \"cscript.exe\")\n\n| sort desc _time\n",
+    "is_enabled": false,
+    "description": "Detecta execução de deno.exe com script .js/.ts armazenado em diretórios de usuário, como AppData, Roaming ou Temp.",
+    "alert_name": "CTX_Deno JavaScript Execution from AppData or Temp Directory",
+    "alert_category": "EXECUTION",
+    "alert_type": null,
+    "alert_description": "Detectada execução de JavaScript via Deno a partir de diretório de usuário no host $agent_hostname . O processo pai foi $actor_process_image_name e o comando executado foi $action_process_image_command_line .",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "SCHEDULED",
+    "search_window": "1 hours",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "actor_effective_username"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0002 - Execution": [
+        "T1059.007 - Command and Scripting Interpreter: JavaScript"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "AUTO",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

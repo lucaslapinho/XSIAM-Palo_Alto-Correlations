@@ -1,0 +1,43 @@
+[
+  {
+    "rule_id": 11,
+    "name": "MS_Suspicious UserAgent Login Detected",
+    "severity": "SEV_030_MEDIUM",
+    "xql_query": "// ============================================================\n// Rule: MS_Suspicious UserAgent Login Detected\n// Vendor: Microsoft EntraID\n// Objective:\n// Detect activity associated with MS_Suspicious UserAgent Login Detected.\n// Severity: SEV_030_MEDIUM\n// Category: CREDENTIAL_ACCESS\n// ============================================================\n// SANITIZED: Environment-specific values replaced with generic placeholders.\n// MITRE ATT&CK:\n// Tactic: TA0006 - Credential Access\n// Technique: T1110.003 - Brute Force: Password Spraying\n\ndataset = msft_azure_raw\n| alter\n    // Extract main fields from log properties\n    Agente = properties -> userAgent,\n    Usuario = properties -> userPrincipalName,\n    userPrincipalName = properties -> userPrincipalName,\n    userDisplayName = properties -> userDisplayName,\n    userId = properties -> userId,\n    ipAddress = properties -> ipAddress,\n    city = properties -> location.city,\n    state = properties -> location.state,\n    countryOrRegion = properties -> location.countryOrRegion,\n    geoCoordinates = properties -> location.geoCoordinates,\n    appDisplayName = properties -> appDisplayName,\n    resultType = properties -> resultType,\n    resultDescription = properties -> resultDescription,\n    riskEventType = properties -> riskEventType\n\n    // Filter by suspicious or automated User-Agent values\n| filter (\n    Agente contains \"curl\" or\n    Agente contains \"wget\" or\n    Agente contains \"python-requests\" or\n    Agente contains \"python-urllib\" or\n    Agente contains \"hydra\" or\n    Agente contains \"go-http-client\" or\n    Agente contains \"apache-httpclient\" or\n    Agente contains \"java\" or\n    Agente contains \"nikto\" or\n    Agente contains \"sqlmap\" or\n    Agente contains \"owasp zap\" or\n    Agente contains \"dirbuster\" or\n    Agente contains \"postmanruntime\" or\n    Agente contains \"libwww-perl\" or\n    Agente contains \"winhttp.winhttprequest\" or\n    Agente contains \"mechanize\"\n)\n//| filter resultType = \"Success\"\n    // Select fields relevant for investigation\n| fields Agente, properties, userPrincipalName, userDisplayName, appDisplayName, ipAddress, city, state, countryOrRegion, resultType, resultDescription\n    \n    //App Exceptions\n\n| filter (appDisplayName not in (\"\"\"<INTERNAL_APPLICATION_2>\"\"\", \"\"\"<INTERNAL_APPLICATION_3>\"\"\", \"\"\"Check Point Cloud Security Platform - Emails V2\"\"\",\"Viva Engage\", \"<INTERNAL_APPLICATION_4>\",\"vRx SAML\",\"<INTERNAL_APPLICATION_5>\"))\n\n    // Users Exceptions\n\n| filter (userPrincipalName not in (\"\"\"<USER_EMAIL_1>\"\"\", \"\"\"<USER_EMAIL_2>\"\"\", \"\"\"<USER_EMAIL_3>\"\"\",\"<USER_EMAIL_4>\"))\n",
+    "is_enabled": false,
+    "description": "Tentativa de autenticação detectada utilizando agentes de usuário incomuns ou automatizados, como curl, python-requests, sqlmap, etc. Isso pode indicar o uso de scripts, ferramentas de automação ou scanners comumente associados a atividades de reconhecimento, força bruta ou testes não autorizados.",
+    "alert_name": "MS_Suspicious UserAgent Login Detected",
+    "alert_category": "CREDENTIAL_ACCESS",
+    "alert_type": null,
+    "alert_description": "Tentativa de autenticação detectada utilizando agentes de usuário incomuns ou automatizados, como curl, python-requests, sqlmap, etc. Isso pode indicar o uso de scripts, ferramentas de automação ou scanners comumente associados a atividades de reconhecimento, força bruta ou testes não autorizados.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "agent_hostname": "userPrincipalName",
+      "action_remote_ip": "ipAddress",
+      "actor_process_image_path": "appDisplayName"
+    },
+    "execution_mode": "SCHEDULED",
+    "search_window": "1 hours",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "userPrincipalName"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0006 - Credential Access": [
+        "T1110.003 - Brute Force: Password Spraying"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

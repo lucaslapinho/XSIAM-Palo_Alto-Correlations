@@ -1,0 +1,37 @@
+[
+  {
+    "rule_id": 82,
+    "name": "THM_PureRAT C2 Activity via AddInProcess32",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: THM_PureRAT C2 Activity via AddInProcess32\n// Vendor: Windows\n// Objective:\n// Detect activity associated with THM_PureRAT C2 Activity via AddInProcess32.\n// Severity: SEV_040_HIGH\n// Category: EXECUTION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0011 - Command and Control\n// Technique: T1071.001 - Application Layer Protocol: Web Protocols\n\n// Configuração inicial: define que as comparações não diferenciam maiúsculas/minúsculas  \nconfig case_sensitive = false  \n\n// Fonte de dados: dataset de telemetria de endpoint do Cortex XDR  \n// O dataset 'xdr_data' contém eventos brutos coletados pelos agentes instalados  \n// em endpoints (Windows, Linux, macOS), abrangendo processos, conexões de rede,  \n// acessos a arquivos e alterações de registro  \n| dataset = xdr_data  \n\n// Filtro para restringir os eventos ao tipo \"STORY\"  \n// O tipo ENUM.STORY representa eventos consolidados e enriquecidos  \n// que descrevem narrativas de execução de processos e cadeias de causalidade  \n| filter event_type = ENUM.STORY  \n\n// Filtro para identificar processos específicos que participam da narrativa  \n// O processo 'AddInProcess32.exe' está associado a componentes .NET e COM+  \n// e pode ser abusado para execução de código em contexto de aplicativos legítimos  \n| filter actor_process_image_name = \"AddInProcess32.exe\"  \n\n// Filtro para restringir eventos que envolvem conexões de rede na porta 56001  \n// Essa porta é incomum em comunicações padrão e pode indicar beaconing, C2,  \n// ou comunicação interna entre componentes comprometidos  \n| filter action_remote_port = 56001  \n\n// Seleção dos campos relevantes para análise e correlação forense  \n// Inclui informações sobre o host, usuário, IP remoto, porta e cadeia de execução  \n| fields agent_hostname,                        // Nome do endpoint que originou o evento  \n         actor_effective_username,               // Usuário efetivo sob o qual o processo foi executado  \n         action_remote_ip,                       // Endereço IP remoto de destino  \n         action_remote_port,                     // Porta remota associada à conexão  \n         dst_action_external_hostname,           // Nome do host externo, se resolvido  \n         actor_process_image_name,               // Nome do processo executado  \n         actor_process_image_path,               // Caminho completo do executável  \n         actor_process_command_line,             // Linha de comando utilizada na execução  \n         causality_actor_process_image_name,     // Processo pai (origem causal)  \n         causality_actor_process_image_path,     // Caminho do processo pai  \n         causality_actor_process_command_line    // Linha de comando do processo pai\n",
+    "is_enabled": false,
+    "description": "Esta consulta identifica conexões de saída anômalas do AddInProcess32.exe para a porta incomum C2 56001, que são fortes indicadores de carregadores em memória no estilo PureRAT.",
+    "alert_name": "THM_PureRAT C2 Activity via AddInProcess32",
+    "alert_category": "EXECUTION",
+    "alert_type": null,
+    "alert_description": "Detecção de atividade de rede anômala envolvendo o processo AddInProcess32.exe estabelecendo conexão na porta 56001, indicando possível uso indevido de componente legítimo para comunicação maliciosa (C2 ou execução lateral).",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "SCHEDULED",
+    "search_window": "1 hours",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": false,
+    "suppression_duration": null,
+    "suppression_fields": null,
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0011 - Command and Control": [
+        "T1071.001 - Application Layer Protocol: Web Protocols"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "AUTO",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

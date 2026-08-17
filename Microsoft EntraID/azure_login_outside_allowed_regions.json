@@ -1,0 +1,39 @@
+[
+  {
+    "rule_id": 80,
+    "name": "AZURE_Login Outside Allowed Regions",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: AZURE_Login Outside Allowed Regions\n// Vendor: Microsoft EntraID\n// Objective:\n// Detect activity associated with AZURE_Login Outside Allowed Regions.\n// Severity: SEV_040_HIGH\n// Category: CREDENTIAL_ACCESS\n// ============================================================\n// SANITIZED: Environment-specific values replaced with generic placeholders.\n// MITRE ATT&CK:\n// Tactic: TA0001 - Initial Access\n// Technique: T1078 - Valid Accounts\n\n// Configuração inicial: define que as comparações diferenciam maiúsculas/minúsculas\nconfig case_sensitive = true  \n\n// Fonte de dados: preset de autenticação do Cortex XDR\n// O preset 'authentication_story' consolida eventos de autenticação\n// provenientes de múltiplas fontes (ex: Azure AD, Okta, VPN, etc.)\n| preset = authentication_story  \n\n// Seleção dos campos relevantes para análise de autenticações\n| fields associated_products,        // Origem ou produto associado ao log (ex: Azure AD Resource Logs)\n         auth_identity,              // Identidade/autenticação (UPN, e-mail, user principal)\n         auth_identity_display_name, // Nome exibido do usuário autenticado\n         action_country,             // País de origem da autenticação\n         auth_target,                // Recurso ou serviço acessado\n         action_local_ip,            // IP interno/local do dispositivo\n         action_user_agent           // Agente de usuário (navegador, app, sistema etc.)\n\n// Filtro para restringir a autenticações provenientes especificamente do Azure AD\n| filter associated_products = \"Azure AD Resource Logs\"\n\n// Filtro para selecionar apenas usuários cujo domínio seja \"<INTERNAL_DOMAIN_29>\"\n| filter auth_identity contains \"<INTERNAL_DOMAIN_29>\"  \n\n// Filtro para detectar logins vindos de países diferentes do Brasil e México\n// (considerados regiões fora do padrão de operação)\n| filter action_country not in (BRAZIL, MEXICO)\n",
+    "is_enabled": false,
+    "description": "Este alerta monitora tentativas de autenticação em contas do domínio <INTERNAL_DOMAIN_29> provenientes de regiões fora do padrão operacional da empresa <ORGANIZATION> (Brasil e México). Detectar logins vindos de outros países pode indicar uso indevido de credenciais corporativas, acesso não autorizado ao Azure AD ou atividade potencialmente maliciosa fora da zona geográfica confiável do Grupo <ORGANIZATION>.",
+    "alert_name": "AZURE_Login Outside Allowed Regions",
+    "alert_category": "CREDENTIAL_ACCESS",
+    "alert_type": null,
+    "alert_description": "O usuário $auth_identity_display_name ( $auth_identity ) realizou uma tentativa de autenticação a partir do país $action_country , utilizando o agente $action_user_agent e IP $action_local_ip .\nA autenticação foi registrada pelo produto $associated_products , tendo como destino o recurso $auth_target . Esse evento deve ser analisado para verificar se o acesso é legítimo e está dentro do comportamento esperado para o ambiente da <ORGANIZATION>.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "REAL_TIME",
+    "search_window": null,
+    "simple_schedule": null,
+    "timezone": null,
+    "crontab": null,
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "auth_identity"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0001 - Initial Access": [
+        "T1078 - Valid Accounts"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

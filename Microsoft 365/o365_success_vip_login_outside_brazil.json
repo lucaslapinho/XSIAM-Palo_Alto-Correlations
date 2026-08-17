@@ -1,0 +1,45 @@
+[
+  {
+    "rule_id": 40,
+    "name": "O365_Success VIP Login outside Brazil",
+    "severity": "SEV_050_CRITICAL",
+    "xql_query": "// ============================================================\n// Rule: O365_Success VIP Login outside Brazil\n// Vendor: Microsoft 365\n// Objective:\n// Detect activity associated with O365_Success VIP Login outside Brazil.\n// Severity: SEV_050_CRITICAL\n// Category: CREDENTIAL_ACCESS\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0001 - Initial Access\n// Technique: T1078 - Valid Accounts\n\ndataset = msft_azure_raw\n| filter operationName = \"Sign-in activity\" and category = \"SignInLogs\"\n| alter result_code = to_integer(resultType),\n        result_desc = resultDescription,\n        user_dst = properties -> userPrincipalName,\n        appDisplayName = properties -> appDisplayName,\n        userDisplayName = properties -> userDisplayName,\n        userAgent = properties -> userAgent,\n        authenticationRequirement = properties ->  authenticationRequirement,\n        isInteractive = properties -> isInteractive,\n        OS = json_extract_scalar(properties, \"$.deviceDetail.operatingSystem\"),\n        result = trim(arrayindex(regextract(properties, \"result\\\":\\\"([^,]+)\"), 0), \"\\\"\"),\n        City = json_extract_scalar(properties, \"$.location.city\"),\n        State = json_extract_scalar(properties, \"$.location.state\"),\n        Country = json_extract_scalar(properties, \"$.location.countryOrRegion\")\n\n| alter authenticationRequirement = if(authenticationRequirement = \"multiFactorAuthentication\", \"Autenticacao Multifatorial\", \"Autenticacao de Fator Unico\")\n\n// Removido visto que está gerando problemas com alguns logs. Alguns países não são reconhecidos pelo iploc.\n//| iploc callerIpAddress loc_country, loc_asn_org\n\n| join type = inner conflict_strategy = both (\n    dataset = vip_users\n    | fields User_UPN\n) as vip vip.User_UPN = user_dst\n\n// Filtro para autenticações fora do Brasil e que foram bem sucedidas.\n| filter (resultSignature = \"\"\"SUCCESS\"\"\" and `Country` != \"\"\"BR\"\"\")\n",
+    "is_enabled": false,
+    "description": "Autenticações bem-sucedidas realizadas por usuários VIP fora do Brasil.",
+    "alert_name": "O365_Success VIP Login outside Brazil",
+    "alert_category": "CREDENTIAL_ACCESS",
+    "alert_type": null,
+    "alert_description": "Usuário $userDisplayName ($user_dst) realizou login com sucesso a partir de $callerIpAddress - $State - $Country utilizando o agente $userAgent, com requisito de autenticação $authenticationRequirement",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "agent_hostname": "User_UPN",
+      "action_local_ip": "callerIpAddress",
+      "action_remote_ip": "callerIpAddress",
+      "actor_effective_username": "User_UPN",
+      "actor_process_command_line": "userAgent"
+    },
+    "execution_mode": "SCHEDULED",
+    "search_window": "10 minutes",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "user_dst"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0001 - Initial Access": [
+        "T1078 - Valid Accounts"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

@@ -1,0 +1,40 @@
+[
+  {
+    "rule_id": 33,
+    "name": "LNX_Privilege Escalation",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: LNX_Privilege Escalation\n// Vendor: Linux\n// Objective:\n// Detect activity associated with LNX_Privilege Escalation.\n// Severity: SEV_040_HIGH\n// Category: PRIVILEGE_ESCALATION\n// ============================================================\n// SANITIZED: Environment-specific values replaced with generic placeholders.\n// MITRE ATT&CK:\n// Tactic: TA0004 - Privilege Escalation\n// Technique: T1548 - Abuse Elevation Control Mechanism\n// Technique: T1548.003 - Abuse Elevation Control Mechanism: Sudo and Sudo Caching\n\n// Fonte de dados: eventos coletados de sistemas Linux\ndataset = linux_linux_raw  \n\n// Filtro para identificar comandos que utilizam \"su -\",\n// geralmente associados à troca de contexto de usuário ou escalonamento de privilégios\n| filter command contains \"/bin/su -\"  \n\n// Exclusão de contas de serviço conhecidas para reduzir falsos positivos\n| filter (username != \"\"\"<SERVICE_ACCOUNT_1>\"\"\")  \n| filter (username != \"\"\"<SERVICE_ACCOUNT_2>\"\"\")  \n| filter (pwd not contains \"\"\"/home/<SERVICE_ACCOUNT_1>\"\"\") \n\n// Seleção dos campos mais relevantes para análise\n| fields hostname,    // Nome do host de origem\n         pwd,         // Diretório de trabalho no momento da execução\n         command,     // Comando executado\n         username     // Usuário que executou o comando\n",
+    "is_enabled": false,
+    "description": "Foi detectada uma escalação de privilégio bem-sucedida em um sistema Linux, possivelmente via comando su. Essa atividade pode fazer parte de uma cadeia de ataque e indica alto risco de comprometimento.",
+    "alert_name": "LNX_Privilege Escalation",
+    "alert_category": "PRIVILEGE_ESCALATION",
+    "alert_type": null,
+    "alert_description": "O usuário $username executou o comando $command no diretório $pwd do host $hostname , indicando possível tentativa de escalação de privilégio no sistema.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "REAL_TIME",
+    "search_window": null,
+    "simple_schedule": null,
+    "timezone": null,
+    "crontab": null,
+    "suppression_enabled": true,
+    "suppression_duration": "4 hours",
+    "suppression_fields": [
+      "hostname"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0004 - Privilege Escalation": [
+        "T1548 - Abuse Elevation Control Mechanism",
+        "T1548.003 - Abuse Elevation Control Mechanism: Sudo and Sudo Caching"
+      ]
+    },
+    "investigation_query_link": "dataset = linux_linux_raw \r\n| filter command contains \"/bin/su -\"",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

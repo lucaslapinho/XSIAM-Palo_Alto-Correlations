@@ -1,0 +1,36 @@
+[
+  {
+    "rule_id": 75,
+    "name": "O365_Massive File Download",
+    "severity": "SEV_030_MEDIUM",
+    "xql_query": "// ============================================================\n// Rule: O365_Massive File Download\n// Vendor: Microsoft 365\n// Objective:\n// Detect activity associated with O365_Massive File Download.\n// Severity: SEV_030_MEDIUM\n// Category: EXFILTRATION\n// ============================================================\n\ndataset = msft_o365_sharepoint_online_raw\n| filter operation = \"FileDownloaded\" // Filtra apenas eventos de download de arquivos.\n\n// Exclui atividades de contas de sistema (ruído comum).\n| filter USERID != \"app@sharepoint\"\n\n// 1. AGRUPAMENTO TEMPORAL: Define a janela de correlação em blocos de 60 minutos (1 hora).\n| bin _time span = 60m\n\n// 2. AGREGAÇÃO E CONTAGEM: Agrupa eventos e contabiliza por usuário/IP neste período.\n| comp count() as download_count,\n         list(OBJECTID) as downloaded_files, // Lista de arquivos baixados (limite de 100 resultados).\n         list(SITEURL) as accessed_sites // Sites de origem acessados.\n  by USERID, // Identidade do usuário.\n     CLIENTIP, // IP de origem.\n     _time // Bloco de 60 minutos (para contagem).\n\n// 3. LIMITE DE DETECÇÃO: Dispara se houver mais de 50 downloads em 60 minutos (Atividade Massiva/Anômala).\n| filter download_count > 50\n\n// 4. RESULTADOS: Seleciona e ordena os campos finais.\n| sort desc download_count\n| fields _time, USERID, CLIENTIP, download_count, accessed_sites, downloaded_files\n",
+    "is_enabled": false,
+    "description": "Este alerta monitora atividades de download em massa de arquivos em um curto período de tempo, especificament 10 download em menos de 30 minutos, comportamento que pode indicar exfiltração de dados, abuso de credenciais ou o uso de ferramentas automatizadas para copiar grandes volumes de informação da rede.",
+    "alert_name": "O365_Massive File Download",
+    "alert_category": "EXFILTRATION",
+    "alert_type": null,
+    "alert_description": "Este alerta identifica uma possível atividade de download em massa de arquivos em um curto intervalo de tempo. Esse comportamento pode indicar exfiltração de dados, abuso de credenciais ou o uso de ferramentas automatizadas para copiar grandes volumes de informações da rede ou de um ambiente em nuvem.\n\nA detecção é baseada na correlação de múltiplos eventos de download realizados por um mesmo usuário, dispositivo ou endereço IP dentro de uma janela de tempo definida, excedendo um limite considerado normal para a operação.\n\nPossíveis causas incluem:\n\nTentativa de exfiltração de dados sensíveis por um colaborador interno;\n\nConta de usuário comprometida realizando downloads em grande escala;\n\nFerramenta de backup, sincronização ou automação configurada incorretamente;\n\nExecução de scripts ou malwares que acessam repositórios ou compartilhamentos de rede.\n\nAções recomendadas:\n\nVerificar se os downloads foram autorizados e se estão relacionados a atividades legítimas.\n\nAnalisar o histórico de logins e permissões do usuário no mesmo período.\n\nInvestigar o dispositivo envolvido e possíveis conexões com outros alertas de segurança.\n\nCaso haja suspeita de exfiltração, considerar o bloqueio temporário da conta ou do tráfego de saída até a conclusão da análise.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "action_remote_ip": "ClientIP",
+      "actor_effective_username": "UserId"
+    },
+    "execution_mode": "SCHEDULED",
+    "search_window": "1 hours",
+    "simple_schedule": "30 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/30 * * * *",
+    "suppression_enabled": false,
+    "suppression_duration": null,
+    "suppression_fields": null,
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {},
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

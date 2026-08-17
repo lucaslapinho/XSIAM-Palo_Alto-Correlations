@@ -1,0 +1,43 @@
+[
+  {
+    "rule_id": 127,
+    "name": "O365_Copilot BOT has been created",
+    "severity": "SEV_020_LOW",
+    "xql_query": "// ============================================================\n// Rule: O365_Copilot BOT has been created\n// Vendor: Microsoft 365\n// Objective:\n// Detect activity associated with O365_Copilot BOT has been created.\n// Severity: SEV_020_LOW\n// Category: OTHER\n// ============================================================\n// SANITIZED: Environment-specific values replaced with generic placeholders.\n// MITRE ATT&CK:\n// Tactic: TA0002 - Execution\n// Technique: T1204 - User Execution\n\nconfig case_sensitive = false\n| dataset = saas_audit_logs\n| filter operation_name_orig = \"BotCreate\"\n\n// User do evento (UserKey)\n| alter UserID = json_extract_scalar(to_json_string(raw_log), \"$.UserKey\")\n| filter UserID != null\n\n// Extrai o JsonPropertiesCollection (JSON em string) e pega o bot.id\n| alter jprops = json_extract_scalar(to_json_string(raw_log), \"$.JsonPropertiesCollection\")\n| alter BotID  = json_extract_scalar(jprops, \"$['powerplatform.analytics.resource.bot.id']\")\n\n// join + diagnóstico\n| join conflict_strategy = both type = inner (\n      dataset = msft_o365_users_raw\n      | fields id, mail, surname, identities, displayName, department, jobTitle\n  ) as o365\n  o365.id = UserID\n\n| fields UserID, displayName, mail, department, jobTitle, BotID\n",
+    "is_enabled": false,
+    "description": "Correlation desenvolvida para análise e auditoria de eventos provenientes do dataset saas_audit_logs, com foco na identificação e rastreamento de agentes de Inteligência Artificial (Copilot) utilizados no <ORGANIZATION>. A regra correlaciona os eventos capturados com informações do dataset msft_o365_users_raw, permitindo determinar de forma precisa o usuário responsável pela geração do evento e fortalecer a visibilidade sobre o uso dos agentes de IA dentro do ambiente corporativo.",
+    "alert_name": "O365_Copilot BOT has been created",
+    "alert_category": "OTHER",
+    "alert_type": null,
+    "alert_description": "Foi identificado que o usuário $mail criou um agente de I.A no ambiente.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "email": "mail",
+      "user_agent": "BotID",
+      "jobfunction": "jobTitle"
+    },
+    "execution_mode": "SCHEDULED",
+    "search_window": "1 hours",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "mail"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0002 - Execution": [
+        "T1204 - User Execution"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

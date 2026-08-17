@@ -1,0 +1,43 @@
+[
+  {
+    "rule_id": 54,
+    "name": "THM_Unsigned sensapi.dll Sideloaded via usysdiag.exe",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: THM_Unsigned sensapi.dll Sideloaded via usysdiag.exe\n// Vendor: Windows\n// Objective:\n// Detect activity associated with THM_Unsigned sensapi.dll Sideloaded via usysdiag.exe.\n// Severity: SEV_040_HIGH\n// Category: EXECUTION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0003 - Persistence\n// Technique: T1574.002 - Hijack Execution Flow: DLL Side-Loading\n// Tactic: TA0005 - Defense Evasion\n// Technique: T1574.002 - Hijack Execution Flow: DLL Side-Loading\n// Tactic: TA0004 - Privilege Escalation\n// Technique: T1574.002 - Hijack Execution Flow: DLL Side-Loading\n\n// Desabilita diferenciação entre maiúsculas e minúsculas para comparações\nconfig case_sensitive = false  \n\n// Define o dataset de origem como dados brutos do Cortex\n| dataset = xdr_data  \n\n// Filtra apenas eventos relacionados a carregamento de módulos/bibliotecas (DLLs)\n| filter event_type = ENUM.LOAD_IMAGE  \n\n// Restringe para processos \"usysdiag.exe\"\n// Possível binário abusado ou renomeado por malware\n| filter actor_process_image_name = \"usysdiag.exe\"  \n\n// Busca carregamento específico da biblioteca sensapi.dll\n| filter action_module_path contains \"sensapi.dll\"  \n\n// Foca em módulos não assinados digitalmente (indicador de potencial)\n| filter action_module_signature_status = ENUM.UNSIGNED  \n\n// Seleciona os campos relevantes para análise\n| fields agent_hostname,                     // Host onde ocorreu o evento\n         actor_process_image_name,           // Nome do processo responsável\n         actor_process_image_path,           // Caminho completo do executável\n         action_module_path,                 // Caminho da DLL carregada\n         action_module_signature_status,     // Status da assinatura digital do módulo\n         action_module_sha256                // Hash SHA256 da DLL\n",
+    "is_enabled": false,
+    "description": "Detecta o carregamento lateral de uma sensapi.dll não assinada pelo usysdiag.exe, conforme observado na cadeia de infecção do Nailaolocker. Esse abuso de sequestro de ordem de busca de DLL permite a execução de código malicioso sob um binário confiável.",
+    "alert_name": "THM_Unsigned sensapi.dll Sideloaded via usysdiag.exe",
+    "alert_category": "EXECUTION",
+    "alert_type": null,
+    "alert_description": "Foi detectado o carregamento lateral de uma DLL não assinada ( $action_module_path , status: $action_module_signature_status , hash: $action_module_sha256 ) pelo processo $actor_process_image_name localizado em $actor_process_image_path no host $agent_hostname . Esse comportamento pode indicar abuso de ordem de busca de DLL, permitindo a execução de código malicioso sob um binário confiável .",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "SCHEDULED",
+    "search_window": "10 minutes",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": false,
+    "suppression_duration": null,
+    "suppression_fields": null,
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0003 - Persistence": [
+        "T1574.002 - Hijack Execution Flow: DLL Side-Loading"
+      ],
+      "TA0005 - Defense Evasion": [
+        "T1574.002 - Hijack Execution Flow: DLL Side-Loading"
+      ],
+      "TA0004 - Privilege Escalation": [
+        "T1574.002 - Hijack Execution Flow: DLL Side-Loading"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "AUTO",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

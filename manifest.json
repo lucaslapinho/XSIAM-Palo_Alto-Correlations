@@ -1,0 +1,1200 @@
+{
+  "format": "Cortex XSIAM single-rule import JSON",
+  "imported_rules_enabled_by_default": false,
+  "total_correlations_found": 146,
+  "total_importable_files_created": 146,
+  "total_rules_sanitized": 34,
+  "total_rules_with_review_notes": 0,
+  "vendors": {
+    "Airflow": 2,
+    "AWS": 3,
+    "BeyondTrust": 10,
+    "Cisco": 3,
+    "Cortex": 24,
+    "Fortigate": 12,
+    "GIT": 3,
+    "Imperva": 4,
+    "Keycloak": 2,
+    "Linux": 4,
+    "Microsoft 365": 11,
+    "Microsoft Defender": 1,
+    "Microsoft EntraID": 13,
+    "OpenCTI": 1,
+    "Palo Alto NGFW": 1,
+    "SailPoint": 3,
+    "Tenable": 5,
+    "Trend Micro": 5,
+    "Windows": 38,
+    "Wiz": 1
+  },
+  "rules": [
+    {
+      "source_index": 1,
+      "rule_name": "WIN_ShieldBreak Exploitation Behavior",
+      "vendor": "Windows",
+      "file": "Windows/win_shieldbreak_exploitation_behavior.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 2,
+      "rule_name": "EPM_Elevated Command and Scripting Interpreter",
+      "vendor": "BeyondTrust",
+      "file": "BeyondTrust/epm_elevated_command_and_scripting_interpreter.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 3,
+      "rule_name": "EPM_Repeated Denied or Blocked Privilege Attempts",
+      "vendor": "BeyondTrust",
+      "file": "BeyondTrust/epm_repeated_denied_or_blocked_privilege_attempts.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 4,
+      "rule_name": "CTX_WordPress Suspicious PHP Write by Web Process",
+      "vendor": "Cortex",
+      "file": "Cortex/ctx_wordpress_suspicious_php_write_by_web_process.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 5,
+      "rule_name": "WIN_Suspicious Kernel Driver Load from Risky Path",
+      "vendor": "Windows",
+      "file": "Windows/win_suspicious_kernel_driver_load_from_risky_path.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 6,
+      "rule_name": "WIN_Domain Reconnaissance via Net Command Burst",
+      "vendor": "Windows",
+      "file": "Windows/win_domain_reconnaissance_via_net_command_burst.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 7,
+      "rule_name": "WIN_Suspicious Remote Access Run Key Persistence",
+      "vendor": "Windows",
+      "file": "Windows/win_suspicious_remote_access_run_key_persistence.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 8,
+      "rule_name": "EPM_User-Writable Path Privilege Elevation Activity",
+      "vendor": "BeyondTrust",
+      "file": "BeyondTrust/epm_user_writable_path_privilege_elevation_activity.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 9,
+      "rule_name": "EPM_Remote Access Tool Privilege Elevation Activity",
+      "vendor": "BeyondTrust",
+      "file": "BeyondTrust/epm_remote_access_tool_privilege_elevation_activity.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 10,
+      "rule_name": "EPM_PowerShell Privilege Elevation Activity",
+      "vendor": "BeyondTrust",
+      "file": "BeyondTrust/epm_powershell_privilege_elevation_activity.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 11,
+      "rule_name": "LNX_External Key-Based Access",
+      "vendor": "Linux",
+      "file": "Linux/lnx_external_key_based_access.json",
+      "sanitized": true,
+      "review_required": false
+    },
+    {
+      "source_index": 12,
+      "rule_name": "Cisco Switch – MAC Flapping alto (≥70 em 10 min)",
+      "vendor": "Cisco",
+      "file": "Cisco/cisco_switch_mac_flapping_alto_70_em_10_min.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 13,
+      "rule_name": "CTI_Data Leak Issue Creator",
+      "vendor": "OpenCTI",
+      "file": "OpenCTI/cti_data_leak_issue_creator.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 14,
+      "rule_name": "O365_Success Login Outside Brazil",
+      "vendor": "Microsoft 365",
+      "file": "Microsoft 365/o365_success_login_outside_brazil.json",
+      "sanitized": true,
+      "review_required": false
+    },
+    {
+      "source_index": 15,
+      "rule_name": "WIN_Suspicious Sandboxie DLL Load from Non-Standard Path",
+      "vendor": "Windows",
+      "file": "Windows/win_suspicious_sandboxie_dll_load_from_non_standard_path.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 16,
+      "rule_name": "O365_Suspicious External Teams Chat from Known Tenant",
+      "vendor": "Microsoft 365",
+      "file": "Microsoft 365/o365_suspicious_external_teams_chat_from_known_tenant.json",
+      "sanitized": true,
+      "review_required": false
+    },
+    {
+      "source_index": 17,
+      "rule_name": "O365_External Teams Support Impersonation Attempt",
+      "vendor": "Microsoft 365",
+      "file": "Microsoft 365/o365_external_teams_support_impersonation_attempt.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 18,
+      "rule_name": "MS_User Added to Monitored Group",
+      "vendor": "Windows",
+      "file": "Windows/ms_user_added_to_monitored_group.json",
+      "sanitized": true,
+      "review_required": false
+    },
+    {
+      "source_index": 19,
+      "rule_name": "WIN_Mass Account Disablement by SailPoint Service Account",
+      "vendor": "Windows",
+      "file": "Windows/win_mass_account_disablement_by_sailpoint_service_account.json",
+      "sanitized": true,
+      "review_required": false
+    },
+    {
+      "source_index": 20,
+      "rule_name": "SLP_Airflow S3 DAG Failure Detected",
+      "vendor": "Airflow",
+      "file": "Airflow/slp_airflow_s3_dag_failure_detected.json",
+      "sanitized": true,
+      "review_required": false
+    },
+    {
+      "source_index": 21,
+      "rule_name": "SLP_Airflow DAG Failure Detected",
+      "vendor": "Airflow",
+      "file": "Airflow/slp_airflow_dag_failure_detected.json",
+      "sanitized": true,
+      "review_required": false
+    },
+    {
+      "source_index": 22,
+      "rule_name": "LNX_Privilege Escalation",
+      "vendor": "Linux",
+      "file": "Linux/lnx_privilege_escalation.json",
+      "sanitized": true,
+      "review_required": false
+    },
+    {
+      "source_index": 23,
+      "rule_name": "BYT_User Removed from Admin Group",
+      "vendor": "BeyondTrust",
+      "file": "BeyondTrust/byt_user_removed_from_admin_group.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 24,
+      "rule_name": "AWS_IAM User creation",
+      "vendor": "AWS",
+      "file": "AWS/aws_iam_user_creation.json",
+      "sanitized": true,
+      "review_required": false
+    },
+    {
+      "source_index": 25,
+      "rule_name": "CTX_Suspicious Svchost Execution from Temporary Directory",
+      "vendor": "Cortex",
+      "file": "Cortex/ctx_suspicious_svchost_execution_from_temporary_directory.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 26,
+      "rule_name": "CTX_Potential Browser Credential and Session Cookie Theft",
+      "vendor": "Cortex",
+      "file": "Cortex/ctx_potential_browser_credential_and_session_cookie_theft.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 27,
+      "rule_name": "BYT_Brute Force Authentication Attempt Detected",
+      "vendor": "BeyondTrust",
+      "file": "BeyondTrust/byt_brute_force_authentication_attempt_detected.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 28,
+      "rule_name": "MS_RiskEvent Unfamiliar Features Login Detected",
+      "vendor": "Microsoft EntraID",
+      "file": "Microsoft EntraID/ms_riskevent_unfamiliar_features_login_detected.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 29,
+      "rule_name": "DFD_Microsoft 365 Defender Alerts (automatically generated)",
+      "vendor": "Microsoft Defender",
+      "file": "Microsoft Defender/dfd_microsoft_365_defender_alerts_automatically_generated.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 30,
+      "rule_name": "WIN_AD Multiple User Deletions",
+      "vendor": "Windows",
+      "file": "Windows/win_ad_multiple_user_deletions.json",
+      "sanitized": true,
+      "review_required": false
+    },
+    {
+      "source_index": 31,
+      "rule_name": "CTX_PromptSnatcher Malicious Browser Extension Detected",
+      "vendor": "Cortex",
+      "file": "Cortex/ctx_promptsnatcher_malicious_browser_extension_detected.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 32,
+      "rule_name": "O365_Success VIP Login outside Brazil",
+      "vendor": "Microsoft 365",
+      "file": "Microsoft 365/o365_success_vip_login_outside_brazil.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 33,
+      "rule_name": "O365_Success ADMIN Login Outside Brazil",
+      "vendor": "Microsoft 365",
+      "file": "Microsoft 365/o365_success_admin_login_outside_brazil.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 34,
+      "rule_name": "Cisco Switch – Múltiplos logins bem-sucedidos em vários switches (≥8 em 1h)",
+      "vendor": "Cisco",
+      "file": "Cisco/cisco_switch_multiplos_logins_bem_sucedidos_em_varios_switches_8_em_1h.json",
+      "sanitized": true,
+      "review_required": false
+    },
+    {
+      "source_index": 35,
+      "rule_name": "CTX_Suspicious Code Hosting Download Followed by MSI Installation",
+      "vendor": "Cortex",
+      "file": "Cortex/ctx_suspicious_code_hosting_download_followed_by_msi_installation.json",
+      "sanitized": true,
+      "review_required": false
+    },
+    {
+      "source_index": 36,
+      "rule_name": "CTX_Deno Runtime Remote JavaScript Execution with Allow-All Permissions",
+      "vendor": "Cortex",
+      "file": "Cortex/ctx_deno_runtime_remote_javascript_execution_with_allow_all_permissions.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 37,
+      "rule_name": "CTX_Deno JavaScript Execution from AppData or Temp Directory",
+      "vendor": "Cortex",
+      "file": "Cortex/ctx_deno_javascript_execution_from_appdata_or_temp_directory.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 38,
+      "rule_name": "CTX_Suspicious WScript to PowerShell to MSBuild Execution Chain",
+      "vendor": "Cortex",
+      "file": "Cortex/ctx_suspicious_wscript_to_powershell_to_msbuild_execution_chain.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 39,
+      "rule_name": "CTX_MSBuild Outbound Network Connection to Public Infrastructure",
+      "vendor": "Cortex",
+      "file": "Cortex/ctx_msbuild_outbound_network_connection_to_public_infrastructure.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 40,
+      "rule_name": "CTX_Stealer Behavior - Sensitive Wallet Data Staging in AppData",
+      "vendor": "Cortex",
+      "file": "Cortex/ctx_stealer_behavior_sensitive_wallet_data_staging_in_appdata.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 41,
+      "rule_name": "TRD_VisionOne_Detection_Medium",
+      "vendor": "Trend Micro",
+      "file": "Trend Micro/trd_visionone_detection_medium.json",
+      "sanitized": true,
+      "review_required": false
+    },
+    {
+      "source_index": 42,
+      "rule_name": "TRD_VisionOne_Detection_Critical",
+      "vendor": "Trend Micro",
+      "file": "Trend Micro/trd_visionone_detection_critical.json",
+      "sanitized": true,
+      "review_required": false
+    },
+    {
+      "source_index": 43,
+      "rule_name": "TRD_VisionOne_Detection_High",
+      "vendor": "Trend Micro",
+      "file": "Trend Micro/trd_visionone_detection_high.json",
+      "sanitized": true,
+      "review_required": false
+    },
+    {
+      "source_index": 44,
+      "rule_name": "TRD_Automatic Alerts",
+      "vendor": "Trend Micro",
+      "file": "Trend Micro/trd_automatic_alerts.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 45,
+      "rule_name": "Endpoint Monitorado Online (Copy)",
+      "vendor": "Cortex",
+      "file": "Cortex/endpoint_monitorado_online_copy.json",
+      "sanitized": true,
+      "review_required": false
+    },
+    {
+      "source_index": 46,
+      "rule_name": "MS_Teams Federation Settings Modified",
+      "vendor": "Microsoft 365",
+      "file": "Microsoft 365/ms_teams_federation_settings_modified.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 47,
+      "rule_name": "NGFW_HA Failure",
+      "vendor": "Palo Alto NGFW",
+      "file": "Palo Alto NGFW/ngfw_ha_failure.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 48,
+      "rule_name": "GIT_Repository Unarchived",
+      "vendor": "GIT",
+      "file": "GIT/git_repository_unarchived.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 49,
+      "rule_name": "WIZ - Alerts (automatically generated)",
+      "vendor": "Wiz",
+      "file": "Wiz/wiz_alerts_automatically_generated.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 50,
+      "rule_name": "REPORT-FTG_Web Filter: Access to Suspicious Category",
+      "vendor": "Fortigate",
+      "file": "Fortigate/report_ftg_web_filter_access_to_suspicious_category.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 51,
+      "rule_name": "THM_Exposed Passwords in Command Lines",
+      "vendor": "Windows",
+      "file": "Windows/thm_exposed_passwords_in_command_lines.json",
+      "sanitized": true,
+      "review_required": false
+    },
+    {
+      "source_index": 52,
+      "rule_name": "LNX_Unexpected Process Running su for Privilege Escalation",
+      "vendor": "Linux",
+      "file": "Linux/lnx_unexpected_process_running_su_for_privilege_escalation.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 53,
+      "rule_name": "EPM_Endpoint Added to Monitored Group",
+      "vendor": "BeyondTrust",
+      "file": "BeyondTrust/epm_endpoint_added_to_monitored_group.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 54,
+      "rule_name": "AWS_Instance Accessed via SSM",
+      "vendor": "AWS",
+      "file": "AWS/aws_instance_accessed_via_ssm.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 55,
+      "rule_name": "WIN_AD Multiple Users Disabled",
+      "vendor": "Windows",
+      "file": "Windows/win_ad_multiple_users_disabled.json",
+      "sanitized": true,
+      "review_required": false
+    },
+    {
+      "source_index": 56,
+      "rule_name": "TNB_Public Virtual Machine Created",
+      "vendor": "Tenable",
+      "file": "Tenable/tnb_public_virtual_machine_created.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 57,
+      "rule_name": "TNB_Public Lambda Function is exposing secrets Detected",
+      "vendor": "Tenable",
+      "file": "Tenable/tnb_public_lambda_function_is_exposing_secrets_detected.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 58,
+      "rule_name": "TNB_Public Load Balancer Detected",
+      "vendor": "Tenable",
+      "file": "Tenable/tnb_public_load_balancer_detected.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 59,
+      "rule_name": "TNB_EC2 Instance Exposing Secrets Detected",
+      "vendor": "Tenable",
+      "file": "Tenable/tnb_ec2_instance_exposing_secrets_detected.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 60,
+      "rule_name": "TNB_Public Storage Account Blob Container Detected",
+      "vendor": "Tenable",
+      "file": "Tenable/tnb_public_storage_account_blob_container_detected.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 61,
+      "rule_name": "WIN_AD Multiple User Creations Sailpoint Error",
+      "vendor": "Windows",
+      "file": "Windows/win_ad_multiple_user_creations_sailpoint_error.json",
+      "sanitized": true,
+      "review_required": false
+    },
+    {
+      "source_index": 62,
+      "rule_name": "WIN_AD Multiple User Creations Sailpoint",
+      "vendor": "Windows",
+      "file": "Windows/win_ad_multiple_user_creations_sailpoint.json",
+      "sanitized": true,
+      "review_required": false
+    },
+    {
+      "source_index": 63,
+      "rule_name": "WIN_AD Multiple User Creations",
+      "vendor": "Windows",
+      "file": "Windows/win_ad_multiple_user_creations.json",
+      "sanitized": true,
+      "review_required": false
+    },
+    {
+      "source_index": 64,
+      "rule_name": "TRD_Ransomware Detection",
+      "vendor": "Trend Micro",
+      "file": "Trend Micro/trd_ransomware_detection.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 65,
+      "rule_name": "IPV_New Site Created on WAF",
+      "vendor": "Imperva",
+      "file": "Imperva/ipv_new_site_created_on_waf.json",
+      "sanitized": true,
+      "review_required": false
+    },
+    {
+      "source_index": 66,
+      "rule_name": "CTX_XDR Collector Failed",
+      "vendor": "Cortex",
+      "file": "Cortex/ctx_xdr_collector_failed.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 67,
+      "rule_name": "O365_Copilot BOT has been created",
+      "vendor": "Microsoft 365",
+      "file": "Microsoft 365/o365_copilot_bot_has_been_created.json",
+      "sanitized": true,
+      "review_required": false
+    },
+    {
+      "source_index": 68,
+      "rule_name": "CTX_Broker VM Cluster Down",
+      "vendor": "Cortex",
+      "file": "Cortex/ctx_broker_vm_cluster_down.json",
+      "sanitized": true,
+      "review_required": false
+    },
+    {
+      "source_index": 69,
+      "rule_name": "MS_Users Added to Global or Device Admin Roles",
+      "vendor": "Microsoft EntraID",
+      "file": "Microsoft EntraID/ms_users_added_to_global_or_device_admin_roles.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 70,
+      "rule_name": "MS_Multiple Kerberos Authentication Failures",
+      "vendor": "Windows",
+      "file": "Windows/ms_multiple_kerberos_authentication_failures.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 71,
+      "rule_name": "WIN_Flag Password Never Expire",
+      "vendor": "Windows",
+      "file": "Windows/win_flag_password_never_expire.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 72,
+      "rule_name": "AWS_Critical EC2 instances (Stop ou Terminate)",
+      "vendor": "AWS",
+      "file": "AWS/aws_critical_ec2_instances_stop_ou_terminate.json",
+      "sanitized": true,
+      "review_required": false
+    },
+    {
+      "source_index": 73,
+      "rule_name": "MS_CrossTenant Partner Added Success",
+      "vendor": "Microsoft EntraID",
+      "file": "Microsoft EntraID/ms_crosstenant_partner_added_success.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 74,
+      "rule_name": "Dataset cisco_switch health check de ingestão",
+      "vendor": "Cisco",
+      "file": "Cisco/dataset_cisco_switch_health_check_de_ingestao.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 75,
+      "rule_name": "CTX_Endpoint EDR Protection Manually Paused",
+      "vendor": "Cortex",
+      "file": "Cortex/ctx_endpoint_edr_protection_manually_paused.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 76,
+      "rule_name": "CTX_Prevention Policy Changed",
+      "vendor": "Cortex",
+      "file": "Cortex/ctx_prevention_policy_changed.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 77,
+      "rule_name": "CTX_New Prevention Policy Created",
+      "vendor": "Cortex",
+      "file": "Cortex/ctx_new_prevention_policy_created.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 78,
+      "rule_name": "KCK_High Volume Of Logins",
+      "vendor": "Keycloak",
+      "file": "Keycloak/kck_high_volume_of_logins.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 79,
+      "rule_name": "KCK_Multiple Public IP Logins per User",
+      "vendor": "Keycloak",
+      "file": "Keycloak/kck_multiple_public_ip_logins_per_user.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 80,
+      "rule_name": "SLP_VA Cluster Status Change Event",
+      "vendor": "SailPoint",
+      "file": "SailPoint/slp_va_cluster_status_change_event.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 81,
+      "rule_name": "SLP_IDN_Source_Updated",
+      "vendor": "SailPoint",
+      "file": "SailPoint/slp_idn_source_updated.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 82,
+      "rule_name": "SLP_IDN Source Created",
+      "vendor": "SailPoint",
+      "file": "SailPoint/slp_idn_source_created.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 83,
+      "rule_name": "IPV_Removing SSL from Site",
+      "vendor": "Imperva",
+      "file": "Imperva/ipv_removing_ssl_from_site.json",
+      "sanitized": true,
+      "review_required": false
+    },
+    {
+      "source_index": 84,
+      "rule_name": "IPV_Site WAF Disabled",
+      "vendor": "Imperva",
+      "file": "Imperva/ipv_site_waf_disabled.json",
+      "sanitized": true,
+      "review_required": false
+    },
+    {
+      "source_index": 85,
+      "rule_name": "IPV_Site Removed from WAF",
+      "vendor": "Imperva",
+      "file": "Imperva/ipv_site_removed_from_waf.json",
+      "sanitized": true,
+      "review_required": false
+    },
+    {
+      "source_index": 86,
+      "rule_name": "CTX_RBAC_Role_Edited",
+      "vendor": "Cortex",
+      "file": "Cortex/ctx_rbac_role_edited.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 87,
+      "rule_name": "CTX_RBAC_Role_Created",
+      "vendor": "Cortex",
+      "file": "Cortex/ctx_rbac_role_created.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 88,
+      "rule_name": "THM_Browser Process with suspicious CommandLine",
+      "vendor": "Windows",
+      "file": "Windows/thm_browser_process_with_suspicious_commandline.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 89,
+      "rule_name": "FTG_High Memory Usage",
+      "vendor": "Fortigate",
+      "file": "Fortigate/ftg_high_memory_usage.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 90,
+      "rule_name": "FTG_High CPU Usage",
+      "vendor": "Fortigate",
+      "file": "Fortigate/ftg_high_cpu_usage.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 91,
+      "rule_name": "AZURE_Login Outside Allowed Regions",
+      "vendor": "Microsoft EntraID",
+      "file": "Microsoft EntraID/azure_login_outside_allowed_regions.json",
+      "sanitized": true,
+      "review_required": false
+    },
+    {
+      "source_index": 92,
+      "rule_name": "WIN_VIP Account Disabled",
+      "vendor": "Windows",
+      "file": "Windows/win_vip_account_disabled.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 93,
+      "rule_name": "MS_Admin Group Modified",
+      "vendor": "BeyondTrust",
+      "file": "BeyondTrust/ms_admin_group_modified.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 94,
+      "rule_name": "GIT_Repository Created",
+      "vendor": "GIT",
+      "file": "GIT/git_repository_created.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 95,
+      "rule_name": "CTX_Disable Prevention Rule Created",
+      "vendor": "Cortex",
+      "file": "Cortex/ctx_disable_prevention_rule_created.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 96,
+      "rule_name": "LNX_Ngrok Free Usage",
+      "vendor": "Linux",
+      "file": "Linux/lnx_ngrok_free_usage.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 97,
+      "rule_name": "THM_Powershell Encoded Command Executed",
+      "vendor": "Windows",
+      "file": "Windows/thm_powershell_encoded_command_executed.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 98,
+      "rule_name": "GIT_Public Repository Created",
+      "vendor": "GIT",
+      "file": "GIT/git_public_repository_created.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 99,
+      "rule_name": "MS_Suspicious High-Privilege App Role Assignment",
+      "vendor": "Microsoft EntraID",
+      "file": "Microsoft EntraID/ms_suspicious_high_privilege_app_role_assignment.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 100,
+      "rule_name": "FTG_Local User Account Created",
+      "vendor": "Fortigate",
+      "file": "Fortigate/ftg_local_user_account_created.json",
+      "sanitized": true,
+      "review_required": false
+    },
+    {
+      "source_index": 101,
+      "rule_name": "BYT_User Add to Admin Group",
+      "vendor": "BeyondTrust",
+      "file": "BeyondTrust/byt_user_add_to_admin_group.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 102,
+      "rule_name": "WIN_GPO Was Modified",
+      "vendor": "Windows",
+      "file": "Windows/win_gpo_was_modified.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 103,
+      "rule_name": "WIN_GPO was deleted",
+      "vendor": "Windows",
+      "file": "Windows/win_gpo_was_deleted.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 104,
+      "rule_name": "WIN_GPO Was Created",
+      "vendor": "Windows",
+      "file": "Windows/win_gpo_was_created.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 105,
+      "rule_name": "CTX_Endpoint EDR Protection Paused",
+      "vendor": "Cortex",
+      "file": "Cortex/ctx_endpoint_edr_protection_paused.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 106,
+      "rule_name": "CTX_Endpoint EDR Protection Uninstall",
+      "vendor": "Cortex",
+      "file": "Cortex/ctx_endpoint_edr_protection_uninstall.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 107,
+      "rule_name": "THM_Curl with ChatID and Telegram API",
+      "vendor": "Windows",
+      "file": "Windows/thm_curl_with_chatid_and_telegram_api.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 108,
+      "rule_name": "THM_cmd.exe LNK Execution",
+      "vendor": "Windows",
+      "file": "Windows/thm_cmd_exe_lnk_execution.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 109,
+      "rule_name": "O365_Mailbox Rule Creation",
+      "vendor": "Microsoft 365",
+      "file": "Microsoft 365/o365_mailbox_rule_creation.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 110,
+      "rule_name": "O365_Admin Privileges Granted",
+      "vendor": "Microsoft 365",
+      "file": "Microsoft 365/o365_admin_privileges_granted.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 111,
+      "rule_name": "MS_EntraID Application Creation Detected",
+      "vendor": "Microsoft EntraID",
+      "file": "Microsoft EntraID/ms_entraid_application_creation_detected.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 112,
+      "rule_name": "MS_EntraID Add User Outside Detected",
+      "vendor": "Microsoft EntraID",
+      "file": "Microsoft EntraID/ms_entraid_add_user_outside_detected.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 113,
+      "rule_name": "FTG_Conserve Mode Activated",
+      "vendor": "Fortigate",
+      "file": "Fortigate/ftg_conserve_mode_activated.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 114,
+      "rule_name": "FTG_Antivirus Suspicious File Download",
+      "vendor": "Fortigate",
+      "file": "Fortigate/ftg_antivirus_suspicious_file_download.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 115,
+      "rule_name": "Endpoint Monitorado Online",
+      "vendor": "Cortex",
+      "file": "Cortex/endpoint_monitorado_online.json",
+      "sanitized": true,
+      "review_required": false
+    },
+    {
+      "source_index": 116,
+      "rule_name": "WIN_Process from GitHub Desktop",
+      "vendor": "Windows",
+      "file": "Windows/win_process_from_github_desktop.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 117,
+      "rule_name": "WIN_PowerShell Password Input Window",
+      "vendor": "Windows",
+      "file": "Windows/win_powershell_password_input_window.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 118,
+      "rule_name": "WIN_Disable UAC Registry Change",
+      "vendor": "Windows",
+      "file": "Windows/win_disable_uac_registry_change.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 119,
+      "rule_name": "THM_Nailaolocker Ransomware Log File Created in ProgramData",
+      "vendor": "Windows",
+      "file": "Windows/thm_nailaolocker_ransomware_log_file_created_in_programdata.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 120,
+      "rule_name": "FGT_BGP Communication Failure",
+      "vendor": "Fortigate",
+      "file": "Fortigate/fgt_bgp_communication_failure.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 121,
+      "rule_name": "CTX_Critical Endpoints Disconnected",
+      "vendor": "Cortex",
+      "file": "Cortex/ctx_critical_endpoints_disconnected.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 122,
+      "rule_name": "MS_Azure Possible Brute Force - Bad Username Password by IP",
+      "vendor": "Microsoft EntraID",
+      "file": "Microsoft EntraID/ms_azure_possible_brute_force_bad_username_password_by_ip.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 123,
+      "rule_name": "THM_SOCKS Proxy in Unusual Location",
+      "vendor": "Windows",
+      "file": "Windows/thm_socks_proxy_in_unusual_location.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 124,
+      "rule_name": "THM_PureRAT C2 Activity via AddInProcess32",
+      "vendor": "Windows",
+      "file": "Windows/thm_purerat_c2_activity_via_addinprocess32.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 125,
+      "rule_name": "THM_ClickFix Detection",
+      "vendor": "Windows",
+      "file": "Windows/thm_clickfix_detection.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 126,
+      "rule_name": "O365_Public or External Sharing Link Created",
+      "vendor": "Microsoft 365",
+      "file": "Microsoft 365/o365_public_or_external_sharing_link_created.json",
+      "sanitized": true,
+      "review_required": false
+    },
+    {
+      "source_index": 127,
+      "rule_name": "O365_Massive File Download",
+      "vendor": "Microsoft 365",
+      "file": "Microsoft 365/o365_massive_file_download.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 128,
+      "rule_name": "MS_RiskEvent AnonymizedIP Login Detected (VPN/TOR)",
+      "vendor": "Microsoft EntraID",
+      "file": "Microsoft EntraID/ms_riskevent_anonymizedip_login_detected_vpn_tor.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 129,
+      "rule_name": "MS_RiskEvent Malicious IP Login Detected",
+      "vendor": "Microsoft EntraID",
+      "file": "Microsoft EntraID/ms_riskevent_malicious_ip_login_detected.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 130,
+      "rule_name": "MS_RiskEvent Anomalous Token Detected",
+      "vendor": "Microsoft EntraID",
+      "file": "Microsoft EntraID/ms_riskevent_anomalous_token_detected.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 131,
+      "rule_name": "WIN_PowerShell Backup & Log Tampering",
+      "vendor": "Windows",
+      "file": "Windows/win_powershell_backup_log_tampering.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 132,
+      "rule_name": "CTX_Falha nos Broker VMs",
+      "vendor": "Cortex",
+      "file": "Cortex/ctx_falha_nos_broker_vms.json",
+      "sanitized": true,
+      "review_required": false
+    },
+    {
+      "source_index": 133,
+      "rule_name": "THM_Disable Windows Recovery Environment",
+      "vendor": "Windows",
+      "file": "Windows/thm_disable_windows_recovery_environment.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 134,
+      "rule_name": "Multiplas alterações de credenciais",
+      "vendor": "Windows",
+      "file": "Windows/multiplas_alteracoes_de_credenciais.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 135,
+      "rule_name": "FTG_IPS Allowed Signature Detected",
+      "vendor": "Fortigate",
+      "file": "Fortigate/ftg_ips_allowed_signature_detected.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 136,
+      "rule_name": "MS_Multiple User Login Attempt from Same Source - PassSpray",
+      "vendor": "Microsoft EntraID",
+      "file": "Microsoft EntraID/ms_multiple_user_login_attempt_from_same_source_passspray.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 137,
+      "rule_name": "THM_Unsigned sensapi.dll Sideloaded via usysdiag.exe",
+      "vendor": "Windows",
+      "file": "Windows/thm_unsigned_sensapi_dll_sideloaded_via_usysdiag_exe.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 138,
+      "rule_name": "THM_Suspicious ICACLS Permissions Deny",
+      "vendor": "Windows",
+      "file": "Windows/thm_suspicious_icacls_permissions_deny.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 139,
+      "rule_name": "THM_Nailaolocker Mutex \"lockv7\" Detected",
+      "vendor": "Windows",
+      "file": "Windows/thm_nailaolocker_mutex_lockv7_detected.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 140,
+      "rule_name": "THM_Masquerading Word Execution from Downloads",
+      "vendor": "Windows",
+      "file": "Windows/thm_masquerading_word_execution_from_downloads.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 141,
+      "rule_name": "THM_Detection of Persistence via Registry Run Key with Suspicious JavaScript",
+      "vendor": "Windows",
+      "file": "Windows/thm_detection_of_persistence_via_registry_run_key_with_suspicious_javascript.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 142,
+      "rule_name": "MS_Suspicious UserAgent Login Detected",
+      "vendor": "Microsoft EntraID",
+      "file": "Microsoft EntraID/ms_suspicious_useragent_login_detected.json",
+      "sanitized": true,
+      "review_required": false
+    },
+    {
+      "source_index": 143,
+      "rule_name": "FTG_Web Filter: Access to Malicious Category",
+      "vendor": "Fortigate",
+      "file": "Fortigate/ftg_web_filter_access_to_malicious_category.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 144,
+      "rule_name": "REPORT-FTG_Successful RDP",
+      "vendor": "Fortigate",
+      "file": "Fortigate/report_ftg_successful_rdp.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 145,
+      "rule_name": "REPORT-FTG_Web Filter: Access to AI Category",
+      "vendor": "Fortigate",
+      "file": "Fortigate/report_ftg_web_filter_access_to_ai_category.json",
+      "sanitized": false,
+      "review_required": false
+    },
+    {
+      "source_index": 146,
+      "rule_name": "FTG_DOS Policy Possible DDoS Attack (Copy)",
+      "vendor": "Fortigate",
+      "file": "Fortigate/ftg_dos_policy_possible_ddos_attack_copy.json",
+      "sanitized": false,
+      "review_required": false
+    }
+  ]
+}

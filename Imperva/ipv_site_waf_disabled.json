@@ -1,0 +1,39 @@
+[
+  {
+    "rule_id": 112,
+    "name": "IPV_Site WAF Disabled",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: IPV_Site WAF Disabled\n// Vendor: Imperva\n// Objective:\n// Detect activity associated with IPV_Site WAF Disabled.\n// Severity: SEV_040_HIGH\n// Category: EVASION\n// ============================================================\n// SANITIZED: Environment-specific values replaced with generic placeholders.\n\n// Configuração inicial: define que as comparações NÃO diferenciam maiúsculas/minúsculas\n// Objetivo: evitar perda de eventos por variação de caixa em campos textuais como 'message'\nconfig case_sensitive = false\n\n// Fonte de dados: logs brutos do Imperva WAF\n// O dataset 'imperva_waf_raw' armazena eventos operacionais e de auditoria do Imperva,\n// incluindo ações administrativas realizadas via console (audit trail)\n| dataset = imperva_waf_raw\n\n// Extração e normalização de campos a partir do payload JSON do Imperva\n// Observação: o campo 'imperva' contém o JSON bruto do evento (ajuste o nome se necessário)\n// - resource_name: identifica o recurso impactado (ex.: site/hostname removido)\n// - account_name: identifica a conta/tenant do Imperva onde a ação ocorreu\n// - executor: usuário administrativo que executou a ação no console\n| alter\n    resource_name = json_extract_scalar(imperva, \"$.audit_trail.resource_name\"), // Ex.: <INTERNAL_DOMAIN_25>.br\n    account_name  = json_extract_scalar(imperva, \"$.ids.account_name\"),          // Ex.: BRA - <ORGANIZATION> - CWAF\n    executor      = user -> email                                                // Executor da ação administrativa\n\n| filter (message = \"\"\"Site state changed to disabled\"\"\") \n\n// Seleção dos campos relevantes para auditoria, correlação e notificação do alerta\n| fields\n    user,           // Estrutura original do usuário (id, nome, e-mail, conforme disponível)\n    executor,       // E-mail do administrador que realizou a remoção\n    account_name,   // Conta/tenant afetada no Imperva\n    resource_name,  // Site/hostname removido\n    message,        // Ação executada (remoção do site)\n    imperva         // Payload bruto do evento (evidência para investigação e troubleshooting)\n",
+    "is_enabled": false,
+    "description": "Regra para monitoração de ações de desativação de um site no WAF Imperva",
+    "alert_name": "IPV_Site WAF Disabled",
+    "alert_category": "EVASION",
+    "alert_type": null,
+    "alert_description": "Foi detectada a desativação de um Site no Imperva WAF (Site state changed to disabled) realizada pelo usuário $executor na conta $account_name .\nA desativação do recurso $resource_name interrompe a proteção WAF associada e pode expor a aplicação a riscos. Valide se a ação foi autorizada e avalie o impacto de segurança.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "eventdescriptions": "imperva",
+      "agent_device_domain": "resource_name",
+      "actor_effective_username": "executor"
+    },
+    "execution_mode": "REAL_TIME",
+    "search_window": null,
+    "simple_schedule": null,
+    "timezone": null,
+    "crontab": null,
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "executor"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {},
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

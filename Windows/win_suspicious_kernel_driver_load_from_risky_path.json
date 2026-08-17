@@ -1,0 +1,52 @@
+[
+  {
+    "rule_id": 188,
+    "name": "WIN_Suspicious Kernel Driver Load from Risky Path",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: WIN_Suspicious Kernel Driver Load from Risky Path\n// Vendor: Windows\n// Objective:\n// Detect activity associated with WIN_Suspicious Kernel Driver Load from Risky Path.\n// Severity: SEV_040_HIGH\n// Category: PRIVILEGE_ESCALATION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0004 - Privilege Escalation\n// Technique: T1068 - Exploitation for Privilege Escalation\n\nconfig case_sensitive = false\n\n| dataset = xdr_data\n\n| filter agent_os_type = ENUM.AGENT_OS_WINDOWS\n| filter event_type = ENUM.LOAD_IMAGE\n\n| alter module_path_lc = lowercase(action_module_path)\n\n| filter module_path_lc ~= \".*\\\\\\\\[^\\\\\\\\]+\\\\.sys$\"\n\n// High-risk load locations; standard driver stores are not included\n| filter module_path_lc ~= \"^(c:\\\\\\\\users\\\\\\\\|c:\\\\\\\\windows\\\\\\\\temp\\\\\\\\|c:\\\\\\\\temp\\\\\\\\|c:\\\\\\\\programdata\\\\\\\\[^\\\\\\\\]+\\\\\\\\temp\\\\\\\\|\\\\\\\\\\\\\\\\)\"\n\n| fields\n    _time,\n    agent_hostname,\n    agent_id,\n    agent_ip_addresses,\n    actor_effective_username,\n    actor_process_image_name,\n    actor_process_image_path,\n    actor_process_command_line,\n    action_module_path,\n    action_module_sha256,\n    action_module_signature_status,\n    action_module_signature_vendor,\n    action_module_wf_verdict,\n    event_type,\n    event_sub_type\n",
+    "is_enabled": false,
+    "description": "Detecta carregamento de drivers .sys a partir de diretórios graváveis pelo usuário, temporários, ProgramData temporário ou caminhos UNC. A lógica adiciona contexto comportamental à proteção nativa do Cortex e pode indicar estágio de BYOVD.",
+    "alert_name": "WIN_Suspicious Kernel Driver Load from Risky Path",
+    "alert_category": "PRIVILEGE_ESCALATION",
+    "alert_type": null,
+    "alert_description": "Foi identificado o carregamento de um driver a partir do caminho de risco $action_module_path no endpoint $agent_hostname . O hash do módulo é $action_module_sha256 . O SOC deve validar a origem do driver, a assinatura e possível tentativa de BYOVD ou execução de código em kernel.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "agent_hostname": "agent_hostname",
+      "action_local_ip": null,
+      "action_remote_ip": null,
+      "action_remote_port": null,
+      "agent_device_domain": null,
+      "actor_effective_username": "actor_effective_username",
+      "actor_process_image_name": "actor_process_image_name",
+      "actor_process_image_path": "actor_process_image_path",
+      "actor_process_command_line": "actor_process_command_line",
+      "actor_process_image_sha256": "actor_process_image_sha256"
+    },
+    "execution_mode": "SCHEDULED",
+    "search_window": "10 minutes",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "24 hours",
+    "suppression_fields": [
+      "agent_hostname",
+      "action_module_sha256",
+      "action_module_path"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0004 - Privilege Escalation": [
+        "T1068 - Exploitation for Privilege Escalation"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

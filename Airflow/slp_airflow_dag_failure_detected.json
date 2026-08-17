@@ -1,0 +1,37 @@
+[
+  {
+    "rule_id": 158,
+    "name": "SLP_Airflow DAG Failure Detected",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: SLP_Airflow DAG Failure Detected\n// Vendor: Airflow\n// Objective:\n// Detect activity associated with SLP_Airflow DAG Failure Detected.\n// Severity: SEV_040_HIGH\n// Category: OTHER\n// ============================================================\n// SANITIZED: Environment-specific values replaced with generic placeholders.\n\n// Consulta de falhas registradas no Airflow\n// Objetivo: listar os principais campos relacionados a falhas de DAGs,\n// incluindo data/hora da ocorrência, ambiente, status, tipo da falha,\n// detalhe do erro e task impactada.\n\nconfig case_sensitive = false\n\n// Dataset com os eventos brutos do Airflow\n| dataset = airflow_airflow_raw\n\n| filter (dag not in (\"\"\"<INTERNAL_DAG_ID_2>\"\"\", \"\"\"<INTERNAL_DAG_ID_1>\"\"\")) \n// Seleção dos campos relevantes para análise da falha\n| fields\n    _insert_time,                         // Data/hora de ingestão do evento no XSIAM\n    data_e_hora_da_ocorrencia_da_falha,   // Data/hora em que a falha ocorreu no Airflow\n    dag,                                  // Nome da DAG impactada\n    Status,                               // Status da execução ou da falha\n    Ambiente,                             // Ambiente onde ocorreu a falha, ex: Produção, Homologação, Desenvolvimento\n    Tipo_de_falha,                        // Classificação ou tipo da falha identificada\n    Detalhe_do_erro_ocorrido,             // Mensagem ou detalhe técnico do erro\n    Task_que_ocorreu_a_falha              // Task específica da DAG onde a falha ocorreu\n",
+    "is_enabled": false,
+    "description": "Detecta registros de falha em execuções do Apache Airflow, identificando DAGs, tasks, ambiente, status, tipo da falha e detalhe do erro ocorrido. O alerta tem como objetivo apoiar a monitoração operacional de pipelines, permitindo rápida identificação de falhas em fluxos críticos de processamento, automação ou integração de dados.",
+    "alert_name": "SLP_Airflow DAG Failure Detected",
+    "alert_category": "OTHER",
+    "alert_type": null,
+    "alert_description": "Foi identificada uma falha em execução do Apache Airflow no ambiente $Ambiente. A DAG impactada foi $dag , com falha registrada na task $Task_que_ocorreu_a_falha . Status informado: $Status . Tipo da falha: $Tipo_de_falha . Detalhe do erro: $Detalhe_do_erro_ocorrido . Validar se a falha impacta processo crítico, verificar recorrência da DAG/task e acionar o time responsável pela sustentação do pipeline, caso necessário.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "eventdescriptions": "Detalhe_do_erro_ocorrido"
+    },
+    "execution_mode": "SCHEDULED",
+    "search_window": "1 hours",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "2 hours",
+    "suppression_fields": [
+      "DAG"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {},
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

@@ -1,0 +1,41 @@
+[
+  {
+    "rule_id": 39,
+    "name": "MS_CrossTenant Partner Added Success",
+    "severity": "SEV_050_CRITICAL",
+    "xql_query": "// ============================================================\n// Rule: MS_CrossTenant Partner Added Success\n// Vendor: Microsoft EntraID\n// Objective:\n// Detect activity associated with MS_CrossTenant Partner Added Success.\n// Severity: SEV_050_CRITICAL\n// Category: INFILTRATION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0005 - Defense Evasion\n// Technique: T1484 - Domain Policy Modification\n// Technique: T1484.002 - Domain Policy Modification: Domain Trust Modification\n\n// Configuração inicial: comparações não diferenciam maiúsculas/minúsculas\n// Objetivo: evitar perda de eventos por variações de caixa em strings (ex.: operation_name_orig / displayName)\nconfig case_sensitive = false\n\n// Fonte de dados: Cloud Audit Logs (Azure AD)\n// O dataset 'cloud_audit_logs' centraliza logs de auditoria de cloud providers.\n// Aqui filtramos especificamente por 'azure_ad_audit_logs'.\n| dataset = cloud_audit_logs\n\n// Filtro: limita aos eventos de auditoria do Azure AD relacionados a cross-tenant access\n// \"Add a partner to cross-tenant access setting\" indica inclusão de parceiro/tenant em configurações de acesso cross-tenant\n| filter log_name = \"azure_ad_audit_logs\"\n| filter operation_name_orig contains \"Add a partner to cross-tenant access setting\"\n\n// Extração: identifica o executor (quem iniciou a mudança) a partir do raw_log (JSON)\n// - initiatedBy_userPrincipalName: UPN do usuário (ex.: nome@dominio)\n// - initiatedBy_userID: objectId do usuário no Entra ID\n// - initiatedBy_IpAddress: IP de origem do executor\n| alter\n    initiatedBy_userPrincipalName = json_extract(raw_log, \"$.properties.initiatedBy.user.userPrincipalName\"),\n    initiatedBy_userID            = json_extract(raw_log, \"$.properties.initiatedBy.user.id\"),\n    initiatedBy_IpAddress         = json_extract(raw_log, \"$.properties.initiatedBy.user.ipAddress\")\n\n// Extração: captura qual propriedade foi modificada no targetResources[0].modifiedProperties[0]\n// Observação: o índice (0) pode variar conforme o evento; este caminho atende o formato mais comum.\n// Aqui usamos displayName para validar se a modificação foi no tenantId.\n| alter\n    Modified_Properties_displayName = json_extract(raw_log, \"$.properties.targetResources.0.modifiedProperties.0.displayName\")\n\n// Filtro: garante que a propriedade alterada está relacionada ao \"tenantId\" (parceiro/tenant adicionado)\n| filter Modified_Properties_displayName contains \"tenantId\"\n\n// Extração: valores antigo e novo do tenantId (antes/depois da alteração)\n| alter\n    oldTenantValue = json_extract(raw_log, \"$.properties.targetResources.0.modifiedProperties.0.oldValue\"),\n    newTenantValue = json_extract(raw_log, \"$.properties.targetResources.0.modifiedProperties.0.newValue\")\n\n// Filtro: considera somente mudanças bem-sucedidas (reduz ruído)\n| filter operation_status = \"Success\"\n\n// Saída final: campos recomendados para alerta/correlação e auditoria\n| fields\n    _time,                           // Timestamp do evento\n    event_id,                        // Identificador do evento\n    operation_name_orig,             // Operação executada no Azure AD\n    operation_status,                // Status (Success/Failure)\n    initiatedBy_userPrincipalName,   // UPN do executor\n    initiatedBy_userID,              // ID do executor\n    initiatedBy_IpAddress,           // IP do executor\n    referenced_resource as Federated_Domain, // Recurso/referência associada (ex.: domínio/tenant federado, quando disponível)\n    newTenantValue,                  // Novo tenantId configurado\n    oldTenantValue,                  // Antigo tenantId (se existir)\n    raw_log                          // Payload bruto (evidência para investigação)\n",
+    "is_enabled": false,
+    "description": "Detecta quando um parceiro é adicionado com sucesso às configurações de acesso entre locatários (cross-tenant) no Azure AD, indicando possível integração externa entre ambientes.",
+    "alert_name": "MS_CrossTenant Partner Added Success",
+    "alert_category": "INFILTRATION",
+    "alert_type": null,
+    "alert_description": "O usuário $initiatedBy_userPrincipalName adicionou com sucesso o domínio federado $Federated_Domain ao tenant $newTenantValue. Evento registrado com ID $event_id.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "agent_hostname": "initiatedBy_userPrincipalName",
+      "agent_device_domain": "event_id"
+    },
+    "execution_mode": "REAL_TIME",
+    "search_window": null,
+    "simple_schedule": null,
+    "timezone": null,
+    "crontab": null,
+    "suppression_enabled": false,
+    "suppression_duration": null,
+    "suppression_fields": null,
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0005 - Defense Evasion": [
+        "T1484 - Domain Policy Modification",
+        "T1484.002 - Domain Policy Modification: Domain Trust Modification"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

@@ -1,0 +1,35 @@
+[
+  {
+    "rule_id": 142,
+    "name": "WIZ - Alerts (automatically generated)",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: WIZ - Alerts (automatically generated)\n// Vendor: Wiz\n// Objective:\n// Detect activity associated with WIZ - Alerts (automatically generated).\n// Severity: SEV_040_HIGH\n// Category: User Defined\n// ============================================================\n\ndataset = wiz_generic_alert_raw\n\n// Garante que somente eventos com payload bruto do Wiz sejam analisados\n| filter _alert_data != null\n\n// Extrai a severidade informada dentro do payload JSON do Wiz\n| alter alert_severity = json_extract_scalar(_alert_data, \"$.severity\")\n\n// Extrai a categoria do alerta/evento enviada pelo Wiz\n| alter alert_category = json_extract_scalar(_alert_data, \"$.alert_category\")\n\n// Extrai o tipo do alerta/evento para diferenciar \"Wiz Issue\" de outros tipos\n| alter alert_type = json_extract_scalar(_alert_data, \"$.alert_type\")\n\n// Extrai o nome do alerta para facilitar identificação durante a triagem\n| alter alert_name = json_extract_scalar(_alert_data, \"$.alert_name\")\n\n// Extrai a descrição do alerta para apoiar o entendimento do contexto\n| alter alert_description = json_extract_scalar(_alert_data, \"$.alert_description\")\n\n// Extrai o identificador da issue no Wiz, quando disponível no payload\n| alter alert_id = json_extract_scalar(_alert_data, \"$.wizissueid\")\n\n// Remove eventos classificados como \"Wiz Issue\"\n// Mantém apenas outros tipos de alertas/eventos recebidos via integração Wiz\n//| filter alert_type != \"Wiz Issue\"\n\n// Seleciona os principais campos para análise, investigação e validação\n| fields \n    type,\n    alert_type,\n    alert_id,\n    alert_category,\n    status,\n    severity,\n    alert_name,\n    alert_description,\n    _alert_data\n",
+    "is_enabled": false,
+    "description": "Identificar alertas brutos ingeridos do Wiz que não são classificados como \"Wiz Issue\", permitindo visibilidade sobre outros tipos de eventos, categorias ou alertas gerados pela integração.",
+    "alert_name": "WIZ_$alert_name",
+    "alert_category": "User Defined",
+    "alert_type": null,
+    "alert_description": "$alert_description",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "REAL_TIME",
+    "search_window": null,
+    "simple_schedule": null,
+    "timezone": null,
+    "crontab": null,
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "alert_id"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": "alert_category",
+    "mitre_defs": {},
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "AUTO",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

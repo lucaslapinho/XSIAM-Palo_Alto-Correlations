@@ -1,0 +1,44 @@
+[
+  {
+    "rule_id": 79,
+    "name": "O365_Mailbox Rule Creation",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: O365_Mailbox Rule Creation\n// Vendor: Microsoft 365\n// Objective:\n// Detect activity associated with O365_Mailbox Rule Creation.\n// Severity: SEV_040_HIGH\n// Category: EXFILTRATION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0009 - Collection\n// Technique: T1114 - Email Collection\n// Technique: T1114.003 - Email Collection: Email Forwarding Rule\n// Tactic: TA0010 - Exfiltration\n\n// Fonte de dados: logs brutos do Microsoft 365 Exchange Online\ndataset = msft_o365_exchange_online_raw  \n\n// Filtro para identificar a criação de novas regras de transporte (Transport Rules)\n// Essas regras podem ser usadas para redirecionar, alterar ou monitorar e-mails.\n// A operação \"new-transportrule\" indica criação de uma nova regra no Exchange.\n| filter Operation = \"new-transportrule\"  \n\n// Seleção dos campos relevantes para análise\n| fields USERID,       // Usuário que criou a regra de transporte\n         Operation,     // Tipo de operação executada (new-transportrule)\n         Parameters     // Parâmetros configurados na regra criada (condições, ações, etc.)\n",
+    "is_enabled": false,
+    "description": "Detecta o cmdlet 'New-TransportRule' no Exchange Online, o que pode indicar a configuração de regras de fluxo de e-mail (mail flow) para encaminhamento (forwarding) ou ocultação de e-mails (email hiding).",
+    "alert_name": "O365_Mailbox Rule Creation",
+    "alert_category": "EXFILTRATION",
+    "alert_type": null,
+    "alert_description": "O usuário $USERID executou a operação $Operation no ExchangeOnline. \nOs parâmetros da regra são: $Parameters. \nInvestigar se existe encaminhamento para domínio externo.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "actor_effective_username": "UserId",
+      "actor_process_image_path": "Operation"
+    },
+    "execution_mode": "REAL_TIME",
+    "search_window": null,
+    "simple_schedule": null,
+    "timezone": null,
+    "crontab": null,
+    "suppression_enabled": true,
+    "suppression_duration": "4 hours",
+    "suppression_fields": [
+      "UserId"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0009 - Collection": [
+        "T1114 - Email Collection",
+        "T1114.003 - Email Collection: Email Forwarding Rule"
+      ],
+      "TA0010 - Exfiltration": []
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

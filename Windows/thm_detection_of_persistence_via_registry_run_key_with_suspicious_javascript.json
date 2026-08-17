@@ -1,0 +1,42 @@
+[
+  {
+    "rule_id": 62,
+    "name": "THM_Detection of Persistence via Registry Run Key with Suspicious JavaScript",
+    "severity": "SEV_050_CRITICAL",
+    "xql_query": "// ============================================================\n// Rule: THM_Detection of Persistence via Registry Run Key with Suspicious JavaScript\n// Vendor: Windows\n// Objective:\n// Detect activity associated with THM_Detection of Persistence via Registry Run Key with Suspicious JavaScript.\n// Severity: SEV_050_CRITICAL\n// Category: EVASION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0003 - Persistence\n// Technique: T1547.001 - Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder\n// Tactic: TA0004 - Privilege Escalation\n// Technique: T1547.001 - Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder\n\n// Desabilita diferenciação entre maiúsculas e minúsculas para comparações\nconfig case_sensitive = false  \n\n// Define o dataset de origem como dados brutos do Cortex XDR\n| dataset = xdr_data  \n\n// Filtra apenas eventos do tipo \"REGISTRY\" (modificação no Registro do Windows)\n| filter event_type = ENUM.REGISTRY  \n\n// Filtra apenas eventos de alteração de valor no registro\n| filter event_sub_type = ENUM.REGISTRY_SET_VALUE  \n\n// Busca alterações na chave de inicialização automática de programas do Windows\n| filter action_registry_key_name contains \"Software\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\Run\"  \n\n// Restringe para valores de registro que apontem para scripts .JS na pasta Public\\Downloads\n| filter (`action_registry_data` = \"\"\"*C:\\\\Users\\\\Public\\\\Downloads\\\\*.js*\"\"\")  \n\n// Seleciona os campos relevantes para análise e resposta\n| fields agent_hostname,                      // Nome do host onde ocorreu o evento\n         actor_process_image_name,             // Nome do processo que executou a ação\n         actor_process_command_line,           // Linha de comando usada pelo processo\n         action_registry_key_name,             // Caminho da chave de registro modificada\n         action_registry_value_name,           // Nome do valor de registro alterado\n         action_registry_data                  // Dados atribuídos ao valor de registro\n",
+    "is_enabled": false,
+    "description": "Este alerta identifica a criação ou modificação de entradas no Registro do Windows, especificamente na chave Run, responsável por iniciar automaticamente programas durante o logon do sistema. A detecção é ativada quando o valor dessa chave aponta para um script .JS localizado na pasta C:\\Users\\Public\\Downloads, um local incomum para arquivos legítimos de inicialização. Esse comportamento pode indicar uma tentativa de persistência maliciosa, comumente associada a malware e scripts usados para execução automática após reinicialização.",
+    "alert_name": "THM_Detection of Persistence via Registry Run Key with Suspicious JavaScript",
+    "alert_category": "EVASION",
+    "alert_type": null,
+    "alert_description": "Foi detectada no host $agent_hostname a criação/modificação de chave de inicialização automática do Windows ($action_registry_key_name) apontando para um script .JS em $action_registry_data. A alteração foi realizada pelo processo $actor_process_image_name, executado com a linha de comando $actor_process_command_line. Esse comportamento pode indicar tentativa de persistência maliciosa no sistema",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "SCHEDULED",
+    "search_window": "10 minutes",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "agent_hostname"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0003 - Persistence": [
+        "T1547.001 - Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder"
+      ],
+      "TA0004 - Privilege Escalation": [
+        "T1547.001 - Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "AUTO",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

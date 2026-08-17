@@ -1,0 +1,50 @@
+[
+  {
+    "rule_id": 181,
+    "name": "EPM_PowerShell Privilege Elevation Activity",
+    "severity": "SEV_030_MEDIUM",
+    "xql_query": "// ============================================================\n// Rule: EPM_PowerShell Privilege Elevation Activity\n// Vendor: BeyondTrust\n// Objective:\n// Detect activity associated with EPM_PowerShell Privilege Elevation Activity.\n// Severity: SEV_030_MEDIUM\n// Category: PRIVILEGE_ESCALATION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0002 - Execution\n// Technique: T1059.001 - Command and Scripting Interpreter: PowerShell\n\nconfig case_sensitive = false\n\n| dataset = beyondtrust_epm_raw \n\n// BeyondTrust endpoint privilege events\n| filter is_epm_event = true\n| filter is_epm_privilege_event = true\n| filter epm_event_code in (100, 112)\n\n// Extract investigation context from the observed process object\n| alter\n    epm_process_command_line = json_extract_scalar(process, \"$.command_line\"),\n    epm_process_title = json_extract_scalar(process, \"$.title\"),\n    epm_parent_process_name = json_extract_scalar(process, \"$.parent.name\"),\n    epm_parent_process_path = json_extract_scalar(process, \"$.parent.executable\"),\n    epm_parent_process_command_line = json_extract_scalar(process, \"$.parent.command_line\"),\n    epm_hosted_file_path = json_extract_scalar(process, \"$.HostedFile.path\"),\n    epm_hosted_file_sha256 = json_extract_scalar(process, \"$.HostedFile.hash.sha256\"),\n    process_name_lc = lowercase(process_name),\n    process_path_lc = lowercase(process_path)\n\n// PowerShell Desktop or PowerShell Core\n| filter process_name_lc in (\"powershell.exe\", \"pwsh.exe\")\n    or process_path_lc ~= \".*\\\\\\\\(powershell|pwsh)\\\\.exe$\"\n\n// Investigation fields\n| fields\n    _time,\n    epm_event_code,\n    event_type,\n    event_message,\n    risk_level,\n    endpoint_name,\n    endpoint_id,\n    endpoint_ip,\n    epm_username,\n    epm_user_id,\n    user_domain,\n    process_name,\n    process_path,\n    epm_process_command_line,\n    epm_process_title,\n    epm_parent_process_name,\n    epm_parent_process_path,\n    epm_parent_process_command_line,\n    epm_hosted_file_path,\n    epm_hosted_file_sha256\n",
+    "is_enabled": false,
+    "description": "Detectar execuções de powershell.exe ou pwsh.exe em eventos do EPM que adicionaram direitos administrativos ao token ou exigiram elevação. Seleciona eventos EPM de privilégio 100 ou 112, normaliza processo, caminho, linha de comando, processo pai e arquivo hospedado e identifica PowerShell por nome ou caminho.",
+    "alert_name": "EPM_PowerShell Privilege Elevation Activity",
+    "alert_category": "PRIVILEGE_ESCALATION",
+    "alert_type": null,
+    "alert_description": "Foi identificada atividade de privilégio do BeyondTrust EPM envolvendo $process_name no endpoint $endpoint_name , executado pelo usuário $epm_username . O processo foi iniciado a partir de $process_path com o comando $epm_process_command_line . O SOC deve validar a legitimidade da elevação ou requisito de elevação.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "agent_hostname": "endpoint_name",
+      "action_local_ip": "endpoint_ip",
+      "agent_device_domain": "user_domain",
+      "actor_effective_username": "epm_username",
+      "actor_process_image_name": "process_name",
+      "actor_process_image_path": "process_path",
+      "actor_process_command_line": "epm_process_command_line"
+    },
+    "execution_mode": "REAL_TIME",
+    "search_window": null,
+    "simple_schedule": null,
+    "timezone": null,
+    "crontab": null,
+    "suppression_enabled": true,
+    "suppression_duration": "30 minutes",
+    "suppression_fields": [
+      "endpoint_name",
+      "epm_username",
+      "process_name",
+      "epm_process_command_line"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0002 - Execution": [
+        "T1059.001 - Command and Scripting Interpreter: PowerShell"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

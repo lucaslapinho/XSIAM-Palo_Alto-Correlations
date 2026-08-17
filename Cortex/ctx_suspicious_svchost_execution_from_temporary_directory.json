@@ -1,0 +1,39 @@
+[
+  {
+    "rule_id": 164,
+    "name": "CTX_Suspicious Svchost Execution from Temporary Directory",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: CTX_Suspicious Svchost Execution from Temporary Directory\n// Vendor: Cortex\n// Objective:\n// Detect activity associated with CTX_Suspicious Svchost Execution from Temporary Directory.\n// Severity: SEV_040_HIGH\n// Category: EXECUTION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0005 - Defense Evasion\n// Technique: T1036.005 - Masquerading: Match Legitimate Name or Location\n\n// Configuração inicial: comparações não diferenciam maiúsculas/minúsculas\n// Objetivo: evitar perda de eventos por variações de caixa nos nomes e caminhos dos processos\nconfig case_sensitive = false\n\n// Fonte de dados: telemetria coletada pelo agente Cortex XDR/XSIAM\n| dataset = xdr_data\n\n// Filtro: restringe a eventos de inicialização de processos\n// PROCESS_START = criação ou início de uma nova execução no endpoint\n| filter event_type = ENUM.PROCESS\n| filter event_sub_type = ENUM.PROCESS_START\n\n// Filtro: procura processos executados com o nome svchost.exe\n// O svchost.exe legítimo é um componente nativo do Windows utilizado para hospedar serviços\n| filter action_process_image_name = \"svchost.exe\"\n\n// Filtro: identifica execuções cujo caminho contém o diretório \\Temp\\\n// Objetivo: detectar possíveis cópias ou binários maliciosos utilizando o nome svchost.exe\n// fora dos diretórios legítimos do Windows, como:\n// - C:\\Windows\\System32\\svchost.exe\n// - C:\\Windows\\SysWOW64\\svchost.exe\n| filter action_process_image_path ~= \"(\\\\\\\\Temp\\\\\\\\)\"\n\n// Resultado final: apresenta os principais campos para investigação\n| fields\n    _time,                              // Data e hora da execução\n    agent_hostname,                     // Host onde o processo foi executado\n    actor_effective_username,           // Usuário efetivo associado à execução\n\n    action_process_image_path,          // Caminho completo do svchost.exe executado\n    action_process_image_command_line,  // Linha de comando do processo suspeito\n\n    action_process_signature_status,    // Status da assinatura digital do svchost.exe\n    action_process_signature_vendor,    // Fabricante identificado na assinatura digital\n\n    actor_process_image_name,           // Processo pai responsável por iniciar o svchost.exe\n    actor_process_command_line,          // Linha de comando do processo pai\n\n    actor_process_signature_status,     // Status da assinatura digital do processo pai\n    actor_process_signature_vendor,     // Fabricante da assinatura do processo pai\n\n    causality_actor_process_image_path  // Caminho do processo de causalidade associado ao evento\n\n// Ordenação: apresenta primeiro as execuções mais recentes\n| sort desc _time\n",
+    "is_enabled": false,
+    "description": "Detecta a execução de um processo chamado svchost.exe a partir de um diretório temporário. O binário legítimo do Windows normalmente é executado a partir de C:\\Windows\\System32\\svchost.exe ou C:\\Windows\\SysWOW64\\svchost.exe. Sua execução em caminhos contendo \\Temp\\ pode indicar cópia, renomeação ou mascaramento de malware para se passar por um processo legítimo do sistema.",
+    "alert_name": "CTX_Suspicious Svchost Execution from Temporary Directory",
+    "alert_category": "EXECUTION",
+    "alert_type": null,
+    "alert_description": "Foi detectada a execução de um processo denominado svchost.exe a partir do diretório temporário $action_process_image_path no host $agent_hostname , sob o usuário $actor_effective_username . Como o binário legítimo normalmente é executado a partir dos diretórios de sistema do Windows, esse comportamento pode indicar mascaramento de processo ou execução de código malicioso e deve ser validado imediatamente.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "SCHEDULED",
+    "search_window": "1 hours",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "6 hours",
+    "suppression_fields": [
+      "agent_hostname"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0005 - Defense Evasion": [
+        "T1036.005 - Masquerading: Match Legitimate Name or Location"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "AUTO",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

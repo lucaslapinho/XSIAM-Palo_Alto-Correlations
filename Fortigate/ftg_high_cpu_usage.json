@@ -1,0 +1,39 @@
+[
+  {
+    "rule_id": 30,
+    "name": "FTG_High CPU Usage",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: FTG_High CPU Usage\n// Vendor: Fortigate\n// Objective:\n// Detect activity associated with FTG_High CPU Usage.\n// Severity: SEV_040_HIGH\n// Category: OTHER\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0040 - Impact\n// Technique: T1498 - Network Denial of Service\n\n// Fonte de dados: logs brutos do Fortinet FortiGate\ndataset = fortinet_fortigate_raw  \n\n// Filtra apenas mensagens que contenham a palavra \"cpu\"\n| filter msg contains \"cpu\"  \n\n// Converte o valor de utilização de CPU (FTNTFGTcpu) para inteiro\n| alter cpu = to_integer(FTNTFGTcpu)  \n\n// Calcula a média de uso de CPU por dispositivo reportado\n| comp avg(cpu) as cpu by _reporting_device_name  \n\n// Mantém apenas os casos onde a média de CPU ultrapassa 90%\n| filter cpu > 90\n",
+    "is_enabled": false,
+    "description": "O dispositivo FortiGate relatou uma alta utilização de CPU, o que pode levar à degradação do desempenho, ativação do Modo de Conservação (Conserve Mode) ou interrupção dos serviços de segurança. Este alerta ajuda a identificar possíveis condições de exaustão de recursos que exigem atenção administrativa.",
+    "alert_name": "FTG_High CPU Usage",
+    "alert_category": "OTHER",
+    "alert_type": null,
+    "alert_description": "dispositivo $_reporting_device_name apresentou alta utilização de CPU ($cpu) , o que pode afetar o desempenho ou ativar o modo de conservação.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "SCHEDULED",
+    "search_window": "10 minutes",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "4 hours",
+    "suppression_fields": [
+      "_reporting_device_name"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0040 - Impact": [
+        "T1498 - Network Denial of Service"
+      ]
+    },
+    "investigation_query_link": "dataset = fortinet_fortigate_raw\r\n| filter msg contains \"cpu\"\r\n| alter cpu = to_integer(FTNTFGTcpu)\r\n| comp avg(cpu) as cpu by _reporting_device_name\r\n| filter cpu > 80",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

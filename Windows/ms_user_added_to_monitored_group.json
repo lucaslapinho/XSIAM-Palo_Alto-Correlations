@@ -1,0 +1,44 @@
+[
+  {
+    "rule_id": 14,
+    "name": "MS_User Added to Monitored Group",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: MS_User Added to Monitored Group\n// Vendor: Windows\n// Objective:\n// Detect activity associated with MS_User Added to Monitored Group.\n// Severity: SEV_040_HIGH\n// Category: PRIVILEGE_ESCALATION\n// ============================================================\n// SANITIZED: Environment-specific values replaced with generic placeholders.\n// MITRE ATT&CK:\n// Tactic: TA0004 - Privilege Escalation\n// Technique: T1098 - Account Manipulation\n\npreset = xdr_event_log\n| filter action_evtlog_event_id in (4728, 4756)\n| alter\n    timestamp = _time,\n    actor = actor_effective_username,\n    TargetUserName = ACTION_EVTLOG_DATA_FIELDS -> TargetUserName,\n    MemberSid = action_evtlog_data_fields -> MemberSid,\n    MemberName = action_evtlog_data_fields -> MemberName,\n    SubjectUserName = action_evtlog_data_fields -> SubjectUserName\n\n| join conflict_strategy =both type = left (dataset=pan_dss_raw | fields display_name as target_user,sid) as whitelist whitelist.sid = MemberSid\n\n| join conflict_strategy =both type = left (dataset=pan_dss_raw | fields display_name as executor, sam_account_name) as whitelist whitelist.sam_account_name  = SubjectUserName \n\n| fields action_evtlog_event_id, sam_account_name, target_user, executor, timestamp, agent_hostname, agent_ip_addresses, TargetUserName, MemberSid, SubjectUserName,MemberName\n| join conflict_strategy =both type = left (dataset=monitored_groups | fields group) as whitelist whitelist.group = TargetUserName\n| filter group != null\n| filter (executor not contains \"\"\"<IDENTITY_PROVISIONING_ACCOUNT>\"\"\" and TargetUserName not contains \"\"\"VPN\"\"\")\n",
+    "is_enabled": false,
+    "description": "Detectada a adição de um usuário a um grupo monitorado do Active Directory classificado como sensível, devido a privilégios elevados ou acesso a sistemas críticos (ex.: grupos administrativos, financeiros ou operacionais). Essa atividade pode indicar escalonamento de privilégios ou tentativa de acesso não autorizado.",
+    "alert_name": "MS_User Added to Monitored Group",
+    "alert_category": "PRIVILEGE_ESCALATION",
+    "alert_type": null,
+    "alert_description": "Detectada a adição do usuário $MemberName ao grupo $group monitorado por $SubjectUserName . A conta envolvida ($sam_account_name) pode ter recebido privilégios elevados. A atividade ocorreu no host $agent_hostname com IP $agent_ip_addresses e pode indicar escalonamento de privilégios ou acesso não autorizado.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "action_local_ip": "target_user",
+      "action_remote_ip": "TargetUserName",
+      "agent_device_domain": "TargetUserName",
+      "actor_effective_username": "target_user",
+      "actor_process_image_name": "executor",
+      "actor_process_image_path": "SubjectUserName"
+    },
+    "execution_mode": "SCHEDULED",
+    "search_window": "10 minutes",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": false,
+    "suppression_duration": null,
+    "suppression_fields": null,
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0004 - Privilege Escalation": [
+        "T1098 - Account Manipulation"
+      ]
+    },
+    "investigation_query_link": "preset = xdr_event_log\r\n| filter action_evtlog_event_id in (4728, 4756)\r\n| alter\r\n    timestamp = _time,\r\n    actor = actor_effective_username,\r\n    TargetUserName = ACTION_EVTLOG_DATA_FIELDS -> TargetUserName,\r\n    MemberSid = action_evtlog_data_fields -> MemberSid,\r\n    SubjectUserName = action_evtlog_data_fields -> SubjectUserName\r\n\r\n| join conflict_strategy =both type = left (dataset=pan_dss_raw | fields display_name as target_user,sid) as whitelist whitelist.sid = MemberSid\r\n\r\n| join conflict_strategy =both type = left (dataset=pan_dss_raw | fields display_name as executor, sam_account_name) as whitelist whitelist.sam_account_name  = SubjectUserName \r\n\r\n| fields action_evtlog_event_id, sam_account_name, target_user, executor, timestamp, agent_hostname, agent_ip_addresses, TargetUserName, MemberSid, SubjectUserName\r\n| join conflict_strategy =both type = left (dataset=monitored_groups | fields group) as whitelist whitelist.group = TargetUserName\r\n| filter group != null",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

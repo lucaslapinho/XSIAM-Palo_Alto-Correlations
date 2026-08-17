@@ -1,0 +1,35 @@
+[
+  {
+    "rule_id": 159,
+    "name": "CTX_PromptSnatcher Malicious Browser Extension Detected",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: CTX_PromptSnatcher Malicious Browser Extension Detected\n// Vendor: Cortex\n// Objective:\n// Detect activity associated with CTX_PromptSnatcher Malicious Browser Extension Detected.\n// Severity: SEV_040_HIGH\n// Category: EXECUTION\n// ============================================================\n\n// Title: PromptSnatcher Extension IDs in Browser Extension Directories\n// Description: File create, write, or open events under browser extension directories for the two known malicious extension IDs. Catches installation artifacts on disk and active runtime loading on hosts where the extension is already installed. Covers Chrome, Edge, and Firefox extension directory structures on Windows and macOS.\n// MITRE: T1176 (Browser Extensions)\n// Reference: MalExt Sentry — PromptSnatcher report (2026-06-13)\n\nconfig case_sensitive = false\n| dataset = xdr_data\n| filter event_type = FILE\n    and event_sub_type in (ENUM.FILE_CREATE_NEW, ENUM.FILE_WRITE, ENUM.FILE_OPEN)\n| filter\n    // Extension A — Smart Adblocker\n    action_file_path contains \"iojpcjjdfhlcbgjnpngcmaojmlokmeii\"\n    // Extension B — Adblock for Browser\n    or action_file_path contains \"jcbjcocinigpbgfpnhlpagidbmlngnnn\"\n| fields _time, agent_hostname, agent_os_type, actor_effective_username,\n         actor_process_image_name, actor_process_image_path,\n         action_file_path, action_file_name, action_file_extension,\n         action_file_sha256, action_file_size, event_sub_type\n| sort asc _time\n",
+    "is_enabled": false,
+    "description": "Detecta artefatos associados à extensão maliciosa PromptSnatcher, capaz de coletar conversas realizadas em plataformas de IA e exfiltrar dados para infraestrutura externa.",
+    "alert_name": "CTX_PromptSnatcher Malicious Browser Extension Detected",
+    "alert_category": "EXECUTION",
+    "alert_type": null,
+    "alert_description": "Foi identificado artefato associado à extensão maliciosa PromptSnatcher no endpoint **$agent_hostname**, executando em **$agent_os_type**, pelo usuário **$actor_effective_username**.\n\nO evento ocorreu em $_time , com ação do tipo $event_sub_type , envolvendo o arquivo $action_file_name no caminho $action_file_path .",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "SCHEDULED",
+    "search_window": "1 hours",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "4 hours",
+    "suppression_fields": [
+      "agent_hostname"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {},
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "AUTO",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

@@ -1,0 +1,42 @@
+[
+  {
+    "rule_id": 121,
+    "name": "KCK_High Volume Of Logins",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: KCK_High Volume Of Logins\n// Vendor: Keycloak\n// Objective:\n// Detect activity associated with KCK_High Volume Of Logins.\n// Severity: SEV_040_HIGH\n// Category: CREDENTIAL_ACCESS\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0006 - Credential Access\n// Technique: T1110.004 - Brute Force: Credential Stuffing\n\nconfig case_sensitive = false\n| dataset = keycloak_keycloak_raw\n\n// Somente eventos de LOGIN\n| filter type = \"LOGIN\"\n\n// Extrai username e grant_type do JSON de detalhes\n| alter\n    username   = json_extract_scalar(details_json_long_value, \"$.username\"),\n    grant_type = json_extract_scalar(details_json_long_value, \"$.grant_type\")\n\n// Janela curta (ajuste conforme sua baseline)\n| bin _time span = 10m\n\n| comp\n    count() as logins\n  by _time, username, client_id, ip_address, realm_id, grant_type\n\n// Threshold (ajuste): muitos logins em 10 min\n| filter logins >= 15\n\n| sort desc logins\n| fields _time, username, client_id, ip_address, realm_id, grant_type, logins\n",
+    "is_enabled": false,
+    "description": "Detecta possíveis tentativas automatizadas (ex.: credential stuffing, password spraying direcionado, automações de cliente, ou loops de autenticação) ao identificar alto volume de eventos de LOGIN no Keycloak para o mesmo usuário, dentro de uma janela de 10 minutos, agrupando por usuário + client_id + IP + realm + grant_type.",
+    "alert_name": "KCK_High Volume Of Logins",
+    "alert_category": "CREDENTIAL_ACCESS",
+    "alert_type": null,
+    "alert_description": "Detectado pico de logins no Keycloak na janela $_time : usuário $username realizou $logins logins (≥30/10min) via client_id= $client_id , origem ip= $ip_address , realm= $realm_id , grant_type= $grant_type .\nTrata-se de uma possível automação (credential stuffing/loop de autenticação) e requer validação imediata.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "action_remote_ip": "ip_address",
+      "actor_effective_username": "username"
+    },
+    "execution_mode": "SCHEDULED",
+    "search_window": "1 hours",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "username"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0006 - Credential Access": [
+        "T1110.004 - Brute Force: Credential Stuffing"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

@@ -1,0 +1,42 @@
+[
+  {
+    "rule_id": 50,
+    "name": "BYT_Brute Force Authentication Attempt Detected",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: BYT_Brute Force Authentication Attempt Detected\n// Vendor: BeyondTrust\n// Objective:\n// Detect activity associated with BYT_Brute Force Authentication Attempt Detected.\n// Severity: SEV_040_HIGH\n// Category: CREDENTIAL_ACCESS\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0006 - Credential Access\n// Technique: T1110 - Brute Force\n\n// Fonte de dados: logs do BeyondTrust Password Safe\ndataset = beyondtrust_passwordsafe_raw  \n\n// Filtra apenas eventos da categoria \"Login Failure\"\n| filter (category = \"\"\"Login Failure\"\"\")  \n\n// Restringe para falhas de autenticação com a mensagem \"Invalid username or password\"\n| filter message = \"Invalid username or password\"  \n\n// Agrupa os eventos em janelas de 10 minutos\n| bin _time span=10m  \n\n// Conta o número total de falhas por usuário dentro da janela de tempo\n// Também coleta os endereços IP de origem relacionados às falhas\n| comp count() as total_failures, values(src_ipv4) as ips by user, _time, description, message  \n\n// Mantém apenas os casos onde foram registradas mais de 5 falhas no período\n| filter total_failures > 10\n",
+    "is_enabled": false,
+    "description": "Detectadas múltiplas tentativas de autenticação fracassadas em sequência no BeyondTrust Password Safe, possivelmente indicando um ataque de brute force.",
+    "alert_name": "BYT_Brute Force Authentication Attempt Detected",
+    "alert_category": "CREDENTIAL_ACCESS",
+    "alert_type": null,
+    "alert_description": "Foram detectadas $total_failures tentativas de autenticação fracassadas no cofre de senhas para o usuário $user a partir dos IPs $ips com o erro: \" $message \".",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "action_local_ip": "ips",
+      "agent_device_domain": "user"
+    },
+    "execution_mode": "SCHEDULED",
+    "search_window": "10 minutes",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "user"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0006 - Credential Access": [
+        "T1110 - Brute Force"
+      ]
+    },
+    "investigation_query_link": "dataset = beyondtrust_passwordsafe_raw\r\n| filter (category = \"\"\"Login Failure\"\"\") \r\n| filter message = \"Invalid username or password\"\r\n| bin _time span=10m\r\n| comp count() as total_failures, values(src_ipv4) as ips by user, _time, description\r\n| filter total_failures > 5",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

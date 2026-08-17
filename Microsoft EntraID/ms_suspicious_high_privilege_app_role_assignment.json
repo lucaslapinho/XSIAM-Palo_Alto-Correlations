@@ -1,0 +1,44 @@
+[
+  {
+    "rule_id": 64,
+    "name": "MS_Suspicious High-Privilege App Role Assignment",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: MS_Suspicious High-Privilege App Role Assignment\n// Vendor: Microsoft EntraID\n// Objective:\n// Detect activity associated with MS_Suspicious High-Privilege App Role Assignment.\n// Severity: SEV_040_HIGH\n// Category: PRIVILEGE_ESCALATION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0004 - Privilege Escalation\n// Technique: T1098 - Account Manipulation\n\n// Desativa case sensitive, para facilitar filtros de texto\nconfig case_sensitive = false \n\n// Define dataset: logs de auditoria da nuvem (Azure AD)\n| dataset = cloud_audit_logs\n// Filtra somente eventos do Azure AD relacionados a atribuição de roles em Service Principals\n| filter (log_name = \"\"\"azure_ad_audit_logs\"\"\") and operation_name_orig in (\"Add app role assignment to service principal\") \n\n// Extrai campo JSON com propriedades modificadas (modifiedProperties)\n| alter mod_props = json_extract(raw_log, \"$.properties.targetResources.0.modifiedProperties\")\n\n// Corrige problemas de escape de caracteres no JSON\n| alter old_str = to_string(\"\"\"\\\\\"\"\") \n| alter new_str = to_string(\"\"\"\\\\\\\\\\\\\"\"\") \n| alter extract = replace(mod_props , old_str, new_str) \n\n// Converte array para formato tratável\n| alter extract = extract -> [] \n\n// Reconstrói JSON em formato chave:valor (displayName : newValue)\n| alter extract = concat(\"{\",arraystring(arraymap(extract, concat(\"\\\"\",\"@element\"->displayName,\"\\\":\\\"\",\"@element\"->newValue,\"\\\"\")),\",\"),\"}\") \n\n// Remove pontos nos nomes das chaves para evitar erro em parsing\n| alter Perms = replex(extract,\"\\.\",\"_\") \n\n// Extrai nome do Service Principal\n| alter ServicePrincipal_DisplayName = json_extract_scalar(Perms, \"$.ServicePrincipal_DisplayName\") \n\n// Extrai as permissões (AppRole_Value)\n| alter permissions = Perms -> AppRole_Value \n\n// Remove aspas extras das permissões\n| alter permissions = replex(permissions, \"\\\"\",\"\") \n\n// Foco em permissões críticas: privilegiam acesso a diretório, arquivos, e-mails, grupos etc.\n| filter permissions in (\"Directory_ReadWrite_All\",\"User_ReadWrite_All\",\"Application_ReadWrite_All\",\"RoleManagement_ReadWrite_Directory\",\"Files_ReadWrite_All\",\"Mail_ReadWrite\",\"Group_ReadWrite_All\",\"Calendars_ReadWrite\") \n\n// Captura o user agent utilizado (útil para identificar automação ou anomalias)\n| alter user_agent = json_extract_scalar(raw_log, \"$.properties.additionalDetails.0.value\") \n\n// Seleciona os campos relevantes para investigação\n| fields _time, operation_name_orig, identity_name, referenced_resource_name as ServicePrincipalName, ServicePrincipal_DisplayName, permissions, user_agent, caller_ip, caller_ip_asn, caller_ip_asn_org, caller_ip_geolocation, raw_log, operation_status \n\n// Remove duplicados no mesmo timestamp para evitar ruído\n| dedup _time, identity_name, ServicePrincipal_DisplayName, permissions\n",
+    "is_enabled": false,
+    "description": "Detecta quando uma Entidade de Serviço no Azure AD recebe funções de aplicativo altamente privilegiadas (por exemplo, Directory_ReadWrite_All, User_ReadWrite_All, Application_ReadWrite_All). Essas atribuições podem indicar escalonamento de privilégios ou tentativas de persistência por meio de registros de aplicativos maliciosos.",
+    "alert_name": "MS_Suspicious High-Privilege App Role Assignment",
+    "alert_category": "PRIVILEGE_ESCALATION",
+    "alert_type": null,
+    "alert_description": "A operação $operation_name_orig foi realizada pelo usuário $identity_name , assinando a permissão $permissions ao serviço $ServicePrincipal_DisplayName .",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "action_remote_ip": "caller_ip",
+      "actor_effective_username": "identity_name",
+      "actor_process_image_path": "ServicePrincipal_DisplayName",
+      "actor_process_command_line": "operation_name_orig"
+    },
+    "execution_mode": "SCHEDULED",
+    "search_window": "1 hours",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "identity_name"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0004 - Privilege Escalation": [
+        "T1098 - Account Manipulation"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

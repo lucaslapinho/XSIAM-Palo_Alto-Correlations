@@ -1,0 +1,38 @@
+[
+  {
+    "rule_id": 63,
+    "name": "MS_Admin Group Modified",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: MS_Admin Group Modified\n// Vendor: BeyondTrust\n// Objective:\n// Detect activity associated with MS_Admin Group Modified.\n// Severity: SEV_040_HIGH\n// Category: CREDENTIAL_ACCESS\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0004 - Privilege Escalation\n// Technique: T1098 - Account Manipulation\n// Technique: T1098.007 - Account Manipulation: Additional Local or Domain Groups\n\n// Fonte de dados: logs do BeyondTrust Password Safe\ndataset = beyondtrust_passwordsafe_raw  \n\n// Filtra eventos que envolvam o grupo \"Administrators\",\n// onde a ação foi de modificação (e não adição de usuários)\n| filter _raw_log contains \"Administrators\"\n       and category = \"Configure\"\n       and event_name = \"Modify\"\n\n// Seleciona os campos relevantes\n| fields user,             // Quem executou a alteração\n         category,         // Categoria do evento\n         user_name,        // Usuário afetado (se aplicável)\n         event_name,       // Tipo de evento (Modify)\n         group_name,       // Nome do grupo (deve ser Administrators)\n         _raw_log          // Log bruto para contexto\n",
+    "is_enabled": false,
+    "description": "Este alerta indica que o grupo Admin foi alterado.",
+    "alert_name": "Admin group modified",
+    "alert_category": "CREDENTIAL_ACCESS",
+    "alert_type": null,
+    "alert_description": null,
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "REAL_TIME",
+    "search_window": null,
+    "simple_schedule": null,
+    "timezone": null,
+    "crontab": null,
+    "suppression_enabled": false,
+    "suppression_duration": null,
+    "suppression_fields": null,
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0004 - Privilege Escalation": [
+        "T1098 - Account Manipulation",
+        "T1098.007 - Account Manipulation: Additional Local or Domain Groups"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

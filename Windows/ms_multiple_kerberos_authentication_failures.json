@@ -1,0 +1,37 @@
+[
+  {
+    "rule_id": 66,
+    "name": "MS_Multiple Kerberos Authentication Failures",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: MS_Multiple Kerberos Authentication Failures\n// Vendor: Windows\n// Objective:\n// Detect activity associated with MS_Multiple Kerberos Authentication Failures.\n// Severity: SEV_040_HIGH\n// Category: CREDENTIAL_ACCESS\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0006 - Credential Access\n// Technique: T1110 - Brute Force\n\n// Configuração inicial: comparações não diferenciam maiúsculas/minúsculas\nconfig case_sensitive = false\n\n// Fonte de dados: telemetria do agente (inclui Windows Event Log)\n| dataset = xdr_data\n\n// Filtro: Event ID 4771 (Kerberos pre-authentication failed)\n| filter event_id = \"4771\"\n\n// Campos básicos para investigação\n| fields agent_hostname, action_user_account_name, event_timestamp\n\n// Contagem por usuário na janela padrão do windowcomp\n| windowcomp count() by action_user_account_name\n",
+    "is_enabled": false,
+    "description": "Regra criada para alertar em caso de múltiplas falhas de autenticação Kerberos.",
+    "alert_name": "Multiple Kerberos Authentication Failures",
+    "alert_category": "CREDENTIAL_ACCESS",
+    "alert_type": null,
+    "alert_description": null,
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "SCHEDULED",
+    "search_window": "10 minutes",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": false,
+    "suppression_duration": null,
+    "suppression_fields": null,
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0006 - Credential Access": [
+        "T1110 - Brute Force"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "AUTO",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

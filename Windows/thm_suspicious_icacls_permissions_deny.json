@@ -1,0 +1,40 @@
+[
+  {
+    "rule_id": 60,
+    "name": "THM_Suspicious ICACLS Permissions Deny",
+    "severity": "SEV_050_CRITICAL",
+    "xql_query": "// ============================================================\n// Rule: THM_Suspicious ICACLS Permissions Deny\n// Vendor: Windows\n// Objective:\n// Detect activity associated with THM_Suspicious ICACLS Permissions Deny.\n// Severity: SEV_050_CRITICAL\n// Category: DROPPER\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0005 - Defense Evasion\n// Technique: T1222.002 - File and Directory Permissions Modification: Linux and Mac File and Directory Permissions Modification\n// Technique: T1222.001 - File and Directory Permissions Modification: Windows File and Directory Permissions Modification\n\ndataset = xdr_data\n| filter\n    // Apenas endpoints Windows\n    agent_os_type = ENUM.AGENT_OS_WINDOWS\n    // Somente eventos de processo (início/fim)\n    and event_type   = ENUM.PROCESS\n    and event_sub_type in (ENUM.PROCESS_START, ENUM.PROCESS_STOP)\n\n// ===============================\n// 2) Padrão de execução do icacls\n//    - Foca no binário icacls.exe\n//    - Detecta linha de comando com /deny ... :(DE,DC)\n//      (negação de permissões Delete e DeleteChild)\n// ===============================\n| filter\n    lowercase(action_process_image_name) = \"icacls.exe\"\n    and lowercase(action_process_image_command_line) ~= \"\\/deny.*\\:\\(de,dc\\)\"\n\n// ===============================\n// 3) Projeção de campos úteis\n//    - Contexto do processo-alvo (action_*)\n//    - Usuários e cadeia causal (actor_*, causality_actor_*, os_actor_*)\n//    - Artefatos para triagem (hash, file info, web mark, cwd, script)\n// ===============================\n| fields\n    // Temporal e host\n    _time,\n    agent_hostname,\n\n    // Processo que executou a ação (target/action)\n    action_process_username,\n    action_process_image_name,\n    action_process_image_path,\n    action_process_image_command_line,\n    action_process_image_sha256,\n    action_process_cwd,\n    action_process_script,\n    action_process_file_info,\n    action_process_file_size,\n    action_process_file_web_mark,\n\n    // Processo ator imediato (parent)\n    actor_effective_username,\n    actor_process_image_name,\n    actor_process_image_path,\n    actor_process_image_command_line,\n    actor_process_image_sha256,\n\n    // Processo causal (ancestral na árvore causal)\n    causality_actor_primary_username,\n    causality_actor_process_image_name,\n    causality_actor_process_image_path,\n    causality_actor_process_command_line,\n    causality_actor_process_image_sha256,\n\n    // Processo ator segundo o SO (quando aplicável)\n    os_actor_primary_username,\n    os_actor_process_image_name,\n    os_actor_process_image_path,\n    os_actor_process_image_command_line,\n    os_actor_process_image_sha256\n",
+    "is_enabled": false,
+    "description": "Detecta a execução do utilitário icacls.exe para negar permissões NTFS DE (Delete) e DC (Delete Child) em arquivos ou diretórios. Esse comportamento é utilizado por atacantes para impedir a exclusão ou alteração de dados, sendo frequentemente associado a campanhas de ransomware e técnicas de evasão de defesa.",
+    "alert_name": "THM_Suspicious ICACLS Permissions Deny",
+    "alert_category": "DROPPER",
+    "alert_type": null,
+    "alert_description": "Foi detectada a execução do utilitário icacls.exe no host $agent_hostname com parâmetros para negar permissões NTFS DE (Delete) e DC (Delete Child), executado pelo usuário $action_process_username . Esse comportamento pode indicar tentativa de impedir a exclusão ou modificação de arquivos/diretórios, técnica frequentemente associada a atividades de ransomware ou evasão de defesa.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "SCHEDULED",
+    "search_window": "10 minutes",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "agent_hostname"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0005 - Defense Evasion": [
+        "T1222.002 - File and Directory Permissions Modification: Linux and Mac File and Directory Permissions Modification",
+        "T1222.001 - File and Directory Permissions Modification: Windows File and Directory Permissions Modification"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "AUTO",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

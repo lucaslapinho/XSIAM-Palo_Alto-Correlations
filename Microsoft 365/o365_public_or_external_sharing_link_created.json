@@ -1,0 +1,38 @@
+[
+  {
+    "rule_id": 76,
+    "name": "O365_Public or External Sharing Link Created",
+    "severity": "SEV_030_MEDIUM",
+    "xql_query": "// ============================================================\n// Rule: O365_Public or External Sharing Link Created\n// Vendor: Microsoft 365\n// Objective:\n// Detect activity associated with O365_Public or External Sharing Link Created.\n// Severity: SEV_030_MEDIUM\n// Category: EXFILTRATION\n// ============================================================\n// SANITIZED: Environment-specific values replaced with generic placeholders.\n\ndataset = msft_o365_sharepoint_online_raw\n| filter operation = \"AnonymousLinkCreated\"\n| filter USERID not in (\"app@sharepoint\", \"<USER_EMAIL_1>\")\n| filter EventData contains \"<Type>Edit</Type>\" and EventData contains \"<MembersCanShareApplied>True</MembersCanShareApplied>\"\n| fields _time, USERID, operation, SiteUrl, ObjectId, EventData\n",
+    "is_enabled": false,
+    "description": "Este alerta monitora a criação de links de compartilhamento públicos ou externos em serviços de nuvem",
+    "alert_name": "O365_Public or External Sharing Link Created",
+    "alert_category": "EXFILTRATION",
+    "alert_type": null,
+    "alert_description": "O usuário $UserId criou um link de compartilhamento anônimo do arquivo $ObjectId, com as seguintes propriedades: $EventData",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "action_remote_ip": "ObjectId",
+      "actor_effective_username": "UserId",
+      "actor_process_image_name": "EventData",
+      "actor_process_image_path": "Operation"
+    },
+    "execution_mode": "SCHEDULED",
+    "search_window": "1 hours",
+    "simple_schedule": "1 hour",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "0 * * * *",
+    "suppression_enabled": false,
+    "suppression_duration": null,
+    "suppression_fields": null,
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {},
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

@@ -1,0 +1,39 @@
+[
+  {
+    "rule_id": 74,
+    "name": "WIN_Process from GitHub Desktop",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: WIN_Process from GitHub Desktop\n// Vendor: Windows\n// Objective:\n// Detect activity associated with WIN_Process from GitHub Desktop.\n// Severity: SEV_040_HIGH\n// Category: EXECUTION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0002 - Execution\n// Technique: T1204.002 - User Execution: Malicious File\n\n// Configuração inicial: define que as comparações de strings não diferenciam maiúsculas/minúsculas\nconfig case_sensitive = false  \n\n// Fonte de dados: eventos coletados pelo Cortex XDR\n| dataset = xdr_data  \n\n// Filtro para selecionar apenas eventos de processo\n// - event_type = PROCESS → eventos de processo\n// - event_sub_type = PROCESS_START → início de execução de processo\n| filter event_type = ENUM.PROCESS and event_sub_type = ENUM.PROCESS_START  \n\n// Filtro adicional: mantém apenas processos que possuem marcação de origem web\n// (informações sobre de onde o binário foi baixado/aberto)\n| filter action_process_file_web_mark != null  \n\n// Criação de campos derivados a partir do metadado de origem web\n| alter HostUrl = action_process_file_web_mark -> HostUrl        // Host de onde o arquivo foi obtido\n| alter ReferrerUrl = action_process_file_web_mark -> ReferrerUrl // URL de referência que direcionou o download  \n\n// Filtro específico: processos iniciados a partir de arquivos cuja URL de referência\n// contém o repositório GitHub Desktop\n| filter ReferrerUrl contains \"github.com/desktop/desktop/tree\"  \n\n// Seleção de campos relevantes para análise\n| fields agent_hostname,                        // Host onde ocorreu a execução\n         actor_effective_username,              // Usuário logado que executou o processo\n         action_process_file_web_mark,          // Metadados da origem web do binário\n         action_process_image_path,             // Caminho do executável iniciado\n         action_process_image_command_line,     // Linha de comando do processo iniciado\n         actor_process_image_path,              // Caminho do processo pai\n         actor_process_command_line,            // Linha de comando do processo pai\n         causality_actor_process_image_path,    // Caminho do processo de causalidade\n         causality_actor_process_command_line   // Linha de comando do processo de causalidade\n",
+    "is_enabled": false,
+    "description": "Retorna processos iniciados no Windows que foram baixados a partir da URL de referência do GitHub Desktop. Ela mostra quem executou, em qual host, qual processo foi iniciado e sua cadeia de causalidade, útil para hunting de binários possivelmente maliciosos vindos do GitHub.",
+    "alert_name": "WIN_Process from GitHub Desktop",
+    "alert_category": "EXECUTION",
+    "alert_type": null,
+    "alert_description": "Foi detectada a execução de processos em $agent_hostname a partir de binários baixados com referência ao repositório GitHub Desktop (github.com/desktop/desktop/tree). O alerta fornece detalhes sobre o usuário envolvido ($actor_effective_username), o processo executado e sua cadeia de execução, permitindo investigar potenciais downloads de binários maliciosos provenientes do GitHub.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "REAL_TIME",
+    "search_window": null,
+    "simple_schedule": null,
+    "timezone": null,
+    "crontab": null,
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "agent_hostname"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0002 - Execution": [
+        "T1204.002 - User Execution: Malicious File"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "AUTO",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

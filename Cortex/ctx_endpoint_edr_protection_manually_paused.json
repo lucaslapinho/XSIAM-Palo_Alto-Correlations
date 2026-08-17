@@ -1,0 +1,43 @@
+[
+  {
+    "rule_id": 37,
+    "name": "CTX_Endpoint EDR Protection Manually Paused",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: CTX_Endpoint EDR Protection Manually Paused\n// Vendor: Cortex\n// Objective:\n// Detect activity associated with CTX_Endpoint EDR Protection Manually Paused.\n// Severity: SEV_040_HIGH\n// Category: EVASION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0005 - Defense Evasion\n// Technique: T1562.001 - Impair Defenses: Disable or Modify Tools\n// Technique: T1562 - Impair Defenses\n\n// Configuração inicial: comparações não diferenciam maiúsculas/minúsculas\n// Objetivo: capturar variações de caixa no comando (ex.: \"Protect Disable\", \"PROTECT DISABLE\")\nconfig case_sensitive = false\n\n// Fonte de dados: telemetria do agente (processos/comandos executados nos endpoints)\n| dataset = xdr_data\n\n// Filtro: identifica execução de comando relacionado à desativação de proteção\n// Observação: 'os_actor_process_command_line' representa a linha de comando observada pelo SO/agente\n| filter os_actor_process_command_line contains \"protect disable\"\n\n// Agregação: consolida ocorrências por endpoint e usuário executor\n| comp\n    count() as Total_Execucoes\n  by agent_hostname, actor_effective_username\n\n// Saída final (útil para alerta/dash)\n| fields agent_hostname, actor_effective_username, Total_Execucoes\n",
+    "is_enabled": false,
+    "description": "A proteção EDR do endpoint foi pausada manualmente. Isso pode ocorrer por manutenção ou indicar uma possível tentativa de desativar mecanismos de segurança, representando risco à integridade do sistema.",
+    "alert_name": "CTX_Endpoint EDR Protection Manually Paused",
+    "alert_category": "EVASION",
+    "alert_type": null,
+    "alert_description": "O usuário $actor_effective_username pausou manualmente a proteção EDR no endpoint $agent_hostname . Essa ação pode indicar manutenção legítima ou uma tentativa de desabilitar a segurança do sistema.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "agent_hostname": "agent_hostname",
+      "actor_effective_username": "actor_effective_username"
+    },
+    "execution_mode": "SCHEDULED",
+    "search_window": "10 minutes",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "agent_hostname"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0005 - Defense Evasion": [
+        "T1562.001 - Impair Defenses: Disable or Modify Tools",
+        "T1562 - Impair Defenses"
+      ]
+    },
+    "investigation_query_link": "dataset=xdr_data\r\n| filter (`os_actor_process_command_line` = \"\"\"protect disable\"\"\")\r\n| comp count() by agent_hostname, actor_effective_username",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

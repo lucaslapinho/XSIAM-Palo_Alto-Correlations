@@ -1,0 +1,37 @@
+[
+  {
+    "rule_id": 55,
+    "name": "THM_Nailaolocker Mutex \"lockv7\" Detected",
+    "severity": "SEV_050_CRITICAL",
+    "xql_query": "// ============================================================\n// Rule: THM_Nailaolocker Mutex \"lockv7\" Detected\n// Vendor: Windows\n// Objective:\n// Detect activity associated with THM_Nailaolocker Mutex \"lockv7\" Detected.\n// Severity: SEV_050_CRITICAL\n// Category: DISCOVERY\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0007 - Discovery\n// Technique: T1057 - Process Discovery\n\n// Desabilita diferenciação entre maiúsculas e minúsculas para comparações\nconfig case_sensitive = false  \n\n// Define o dataset de origem como dados brutos do Cortex XDR\n| dataset = xdr_data  \n\n// Filtra apenas eventos de chamadas de sistema (syscalls)\n| filter event_type = ENUM.SYSTEM_CALL  \n\n// Restringe aos eventos específicos de criação de \"mutants\" (objetos de sincronização no Windows)\n| filter event_sub_type = ENUM.SYSTEM_CALL_NT_CREATE_MUTANT  \n\n// Extrai o valor do mutex criado a partir dos parâmetros da syscall\n| alter mutex = json_extract_scalar(action_syscall_string_params, \"$.1\")  \n\n// Filtra apenas quando o mutex criado corresponde a \"lockv7\"\n// (exemplo comum usado por algumas famílias de malware para evitar múltiplas execuções)\n| filter mutex = \"lockv7\"  \n\n// Seleciona os campos relevantes para análise\n| fields _time,                              // Momento do evento\n         agent_hostname,                     // Nome do host onde ocorreu a execução\n         actor_process_image_name,           // Nome do processo que criou o mutex\n         actor_process_image_path,           // Caminho completo do processo\n         actor_process_command_line,         // Linha de comando usada na execução\n         mutex                               // Nome do mutex identificado\n",
+    "is_enabled": false,
+    "description": "Identifica a criação do mutex lockv7, usado pelo Nailaolocker para garantir que uma única instância seja executada no host. A detecção desse mutex pode indicar execução ativa de ransomware.",
+    "alert_name": "THM_Nailaolocker Mutex \"lockv7\" Detected",
+    "alert_category": "DISCOVERY",
+    "alert_type": null,
+    "alert_description": "Em $_time, foi detectada a criação do mutex $mutex pelo processo $actor_process_image_name localizado em $actor_process_image_path (comando: $actor_process_command_line) no host $agent_hostname. Esse mutex é utilizado pelo Nailaolocker para garantir execução única, podendo indicar atividade de ransomware em andamento.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "SCHEDULED",
+    "search_window": "10 minutes",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": false,
+    "suppression_duration": null,
+    "suppression_fields": null,
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0007 - Discovery": [
+        "T1057 - Process Discovery"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "AUTO",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

@@ -1,0 +1,39 @@
+[
+  {
+    "rule_id": 137,
+    "name": "WIN_AD Multiple User Creations Sailpoint Error",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: WIN_AD Multiple User Creations Sailpoint Error\n// Vendor: Windows\n// Objective:\n// Detect activity associated with WIN_AD Multiple User Creations Sailpoint Error.\n// Severity: SEV_040_HIGH\n// Category: CREDENTIAL_ACCESS\n// ============================================================\n// SANITIZED: Environment-specific values replaced with generic placeholders.\n// MITRE ATT&CK:\n// Tactic: TA0003 - Persistence\n// Technique: T1136 - Create Account\n\nconfig case_sensitive = false\n\n\n// ========================================\n// Fonte de dados: Cortex XDR\n// Inclui Windows Security Event Log\n// ========================================\n| dataset = xdr_data\n\n\n// ========================================\n// Filtro de eventos:\n// 4720 = User Account Created\n// 4738 = User Account Changed (enriquecimento de atributos)\n// ========================================\n| filter event_type = ENUM.EVENT_LOG\n| filter action_evtlog_event_id in (4720, 4738)\n\n\n// ========================================\n// Normalização dos campos relevantes\n// ========================================\n| alter\n    EventID          = action_evtlog_event_id,                     // ID do evento (4720 / 4738)\n    SamAccountName   = action_evtlog_data_fields -> SamAccountName, // Login do usuário\n    AD_DisplayName   = action_evtlog_data_fields -> DisplayName,    // Nome completo no AD\n    TargetDomainName = action_evtlog_data_fields -> TargetDomainName, // Domínio\n    Endpoint         = action_evtlog_data_fields -> SubjectUserName // Conta que realizou a ação\n\n\n// ========================================\n// Filtro: somente criações vindas do SailPoint\n// ========================================\n| filter Endpoint = \"<IDENTITY_PROVISIONING_ACCOUNT>\"\n\n| filter TargetDomainName != \"<NON_PRODUCTION_DOMAIN>\"\n\n// ========================================\n// Filtro de padrão no Nome do AD\n// Retorna apenas usuários cujo DisplayName\n// contenha a frase desejada\n// ========================================\n| filter AD_DisplayName contains \"Contratado Nome\"\n\n\n// ========================================\n// Agrupamento temporal\n// Consolida eventos em janelas de 1 hora\n// ========================================\n| bin _time span = 1h\n\n\n// ========================================\n// Agregação:\n// - Quantidade de usuários criados\n// - sAMAccountNames criados\n// - Names (DisplayName) associados\n// - Eventos correlacionados (4720 / 4738)\n// ========================================\n| comp\n    count_distinct(SamAccountName) as users_created,\n    values(SamAccountName) as samaccount_created,\n    values(AD_DisplayName) as ad_name_created,\n    values(EventID) as related_events\n  by _time, agent_hostname, Endpoint, TargetDomainName\n\n\n\n// ========================================\n// Ordenação para priorizar os maiores volumes\n// ========================================\n| sort desc users_created\n\n\n// ========================================\n// Saída final\n// ========================================\n| fields *\n",
+    "is_enabled": false,
+    "description": "Avalia erros em Produção do SailPoint. Caso surjam eventos com o DisplayName: Contratado Nome em producao.",
+    "alert_name": "WIN_AD_Multiple_User_Creations_Error_SailPoint",
+    "alert_category": "CREDENTIAL_ACCESS",
+    "alert_type": null,
+    "alert_description": "Foi detectada a criação em massa de contas de usuário no Active Directory no host $agent_hostname, o que pode indicar atividade administrativa não autorizada ou ação maliciosa e deve ser validado imediatamente.\nUsuários criados: $created_users",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "SCHEDULED",
+    "search_window": "1 hours",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "Endpoint"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0003 - Persistence": [
+        "T1136 - Create Account"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "AUTO",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

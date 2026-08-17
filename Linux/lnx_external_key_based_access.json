@@ -1,0 +1,41 @@
+[
+  {
+    "rule_id": 53,
+    "name": "LNX_External Key-Based Access",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: LNX_External Key-Based Access\n// Vendor: Linux\n// Objective:\n// Detect activity associated with LNX_External Key-Based Access.\n// Severity: SEV_040_HIGH\n// Category: CREDENTIAL_ACCESS\n// ============================================================\n// SANITIZED: Environment-specific values replaced with generic placeholders.\n// MITRE ATT&CK:\n// Tactic: TA0001 - Initial Access\n// Technique: T1078 - Valid Accounts\n\n// Seleciona o dataset de logs brutos do Linux\ndataset = linux_linux_raw \n\n// Filtra apenas os logs que indicam autenticação bem-sucedida via chave pública SSH\n| filter _raw_log contains \"Accepted publickey for\" \n\n// Seleciona os campos relevantes para análise: nome do host, diretório atual, comando executado, usuário e IP de origem\n| fields hostname, pwd, command, username, src_ip \n\n// Exclui acessos feitos pelo usuário de serviço '<SERVICE_ACCOUNT_2>'\n| filter (username != \"\"\"<SERVICE_ACCOUNT_2>\"\"\") \n\n// Exclui acessos feitos pelo usuário de serviço '<SERVICE_ACCOUNT_1>'\n| filter (username != \"\"\"<SERVICE_ACCOUNT_1>\"\"\") \n\n// Remove logs que contenham conexões originadas dos IPs internos ou confiáveis especificados\n| filter (\n    src_ip  !=  \"\"\"<INTERNAL_IP_1>\"\"\" and \n    src_ip  !=  \"\"\"<INTERNAL_IP_2>\"\"\" and \n    src_ip  !=  \"\"\"<INTERNAL_IP_3>\"\"\" and \n    src_ip  !=  \"\"\"<INTERNAL_IP_4>\"\"\" and \n    src_ip  !=  \"\"\"<INTERNAL_IP_5>\"\"\" and\n    src_ip  !=  \"\"\"<INTERNAL_IP_6>\"\"\"\n)\n",
+    "is_enabled": false,
+    "description": "Este alerta detecta acessos SSH via chave pública em servidores Linux que ocorreram fora do cofre de credenciais, excluindo usuários e IPs previamente autorizados. O objetivo é identificar conexões potencialmente não autorizadas ou fora dos padrões esperados de segurança.",
+    "alert_name": "LNX_External Key-Based Access",
+    "alert_category": "CREDENTIAL_ACCESS",
+    "alert_type": null,
+    "alert_description": "Foi detectado um acesso via chave pública no host $hostname , a partir do IP $src_ip através do  usuário $username , fora dos padrões esperados de segurança.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "agent_hostname": "hostname",
+      "action_local_ip": "src_ip",
+      "actor_effective_username": "username"
+    },
+    "execution_mode": "REAL_TIME",
+    "search_window": null,
+    "simple_schedule": null,
+    "timezone": null,
+    "crontab": null,
+    "suppression_enabled": false,
+    "suppression_duration": null,
+    "suppression_fields": null,
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0001 - Initial Access": [
+        "T1078 - Valid Accounts"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

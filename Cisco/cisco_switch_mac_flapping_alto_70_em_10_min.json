@@ -1,0 +1,33 @@
+[
+  {
+    "rule_id": 125,
+    "name": "Cisco Switch – MAC Flapping alto (≥70 em 10 min)",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: Cisco Switch – MAC Flapping alto (≥70 em 10 min)\n// Vendor: Cisco\n// Objective:\n// Detect activity associated with Cisco Switch – MAC Flapping alto (≥70 em 10 min).\n// Severity: SEV_040_HIGH\n// Category: OTHER\n// ============================================================\n\ndataset = cisco_switch_raw\n| filter _raw_log contains \"%SW_MATM-4-MACFLAP_NOTIF\"\n| bin _time span = 10m\n| comp count() as macflap_10m,\n       min(_time) as first_seen,\n       max(_time) as last_seen\n  by _final_reporting_device_ip, _time\n| filter macflap_10m >= 70\n| fields _final_reporting_device_ip, _time, macflap_10m, first_seen, last_seen\n| sort desc macflap_10m\n",
+    "is_enabled": false,
+    "description": "Detecta instabilidade de camada 2 em switches Cisco. Gera um caso quando um switch registra ≥ 70 eventos %SW_MATM-4-MACFLAP_NOTIF dentro de uma janela de 10 minutos.",
+    "alert_name": "Cisco Switch – MAC Flapping alto (≥70 en 10 min)",
+    "alert_category": "OTHER",
+    "alert_type": "Correlation",
+    "alert_description": "O switch $_final_reporting_device_ip registrou $macflap_10m eventos de MAC flapping em uma janela de 10 minutos (início: $_time). Possível loop de camada 2 (L2), STP ou port-channel inconsistente.\n\nEsse padrão de MAC flapping normalmente indica instabilidade na camada 2, podendo ser causado por loop de rede, STP oscilando/mal configurado, port-channel/LACP inconsistente ou dispositivo fazendo bridging/switching indevido. Pode gerar intermitência, alta latência e perda de conectividade no segmento afetado.",
+    "alert_domain": "DOMAIN_HEALTH",
+    "alert_fields": {},
+    "execution_mode": "SCHEDULED",
+    "search_window": "10 minutes",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": false,
+    "suppression_duration": null,
+    "suppression_fields": null,
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {},
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

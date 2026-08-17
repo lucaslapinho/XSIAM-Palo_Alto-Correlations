@@ -1,0 +1,41 @@
+[
+  {
+    "rule_id": 28,
+    "name": "WIN_GPO was deleted",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: WIN_GPO was deleted\n// Vendor: Windows\n// Objective:\n// Detect activity associated with WIN_GPO was deleted.\n// Severity: SEV_040_HIGH\n// Category: EVASION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0005 - Defense Evasion\n// Technique: T1484.001 - Domain Policy Modification: Group Policy Modification\n// Technique: T1484 - Domain Policy Modification\n\n// O preset de eventos do Windows é utilizado para analisar logs de segurança\npreset = xdr_event_log  \n\n// São considerados apenas eventos com o ID 5141, que indicam exclusão de objetos no AD\n| filter action_evtlog_event_id in (5141)  \n\n// A análise é restrita a objetos do tipo \"groupPolicyContainer\",\n// ou seja, exclusão de Diretivas de Grupo (GPOs)\n| filter action_evtlog_data_fields -> ObjectClass = \"groupPolicyContainer\"  \n\n// Novos campos são criados para facilitar a leitura dos resultados\n| alter\n    timestamp = _time,                                    // Momento em que o evento ocorreu\n    actor = actor_effective_username,                     // Usuário associado ao evento\n    ObjectDN = action_evtlog_data_fields -> ObjectDN,     // Distinguished Name do objeto de GPO\n    SubjectUserName = action_evtlog_data_fields -> SubjectUserName, // Usuário que executou a ação\n    OperationType = \"Delete\"                              // Tipo de operação (exclusão)\n\n// Um join é realizado com o inventário do AD (pan_dss_raw) para enriquecer os dados,\n// permitindo correlacionar o SubjectUserName com o display_name do executor\n| join conflict_strategy=both type=left (\n    dataset=pan_dss_raw \n    | fields display_name as executor, sam_account_name\n) as whitelist \nwhitelist.sam_account_name = SubjectUserName  \n\n// São exibidos apenas os campos mais relevantes para análise\n| fields timestamp, agent_hostname, agent_ip_addresses, actor, SubjectUserName, executor, ObjectDN, OperationType\n",
+    "is_enabled": false,
+    "description": "Foi detectada a exclusão de um ou mais Objetos de Política de Grupo (GPOs) no ambiente. A remoção de GPOs pode impactar diretamente configurações de segurança, políticas de acesso e conformidade da organização. Esse tipo de atividade deve ser monitorado atentamente, pois pode estar relacionado a ações administrativas não autorizadas ou comportamentos maliciosos visando enfraquecer os controles de segurança.",
+    "alert_name": "WIN_GPO was deleted",
+    "alert_category": "EVASION",
+    "alert_type": null,
+    "alert_description": "Foi detectada a exclusão de um ou mais Objetos de Política de Grupo (GPOs) no ambiente. A remoção de GPOs pode impactar diretamente configurações de segurança, políticas de acesso e conformidade da organização. Esse tipo de atividade deve ser monitorado atentamente, pois pode estar relacionado a ações administrativas não autorizadas ou comportamentos maliciosos visando enfraquecer os controles de segurança.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "actor_process_image_name": "executor",
+      "actor_process_image_path": "SubjectUserName"
+    },
+    "execution_mode": "SCHEDULED",
+    "search_window": "10 minutes",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": false,
+    "suppression_duration": null,
+    "suppression_fields": null,
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0005 - Defense Evasion": [
+        "T1484.001 - Domain Policy Modification: Group Policy Modification",
+        "T1484 - Domain Policy Modification"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

@@ -1,0 +1,37 @@
+[
+  {
+    "rule_id": 100,
+    "name": "AWS_Critical EC2 instances (Stop ou Terminate)",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: AWS_Critical EC2 instances (Stop ou Terminate)\n// Vendor: AWS\n// Objective:\n// Detect activity associated with AWS_Critical EC2 instances (Stop ou Terminate).\n// Severity: SEV_040_HIGH\n// Category: User Defined\n// ============================================================\n// SANITIZED: Environment-specific values replaced with generic placeholders.\n// MITRE ATT&CK:\n// Tactic: TA0042 - Resource Development\n// Technique: T1584 - Compromise Infrastructure\n\n// Configuração inicial: comparações não diferenciam maiúsculas/minúsculas\n// Objetivo: reduzir risco de perda de eventos por variações de caixa em campos textuais (ex.: userAgent)\nconfig case_sensitive = false\n\n// Fonte de dados: logs brutos do AWS (CloudTrail)\n// O dataset 'amazon_aws_raw' contém eventos de auditoria de serviços AWS, incluindo EC2.\n| dataset = amazon_aws_raw\n\n// Filtro: restringe aos eventos do serviço EC2\n| filter eventSource = \"ec2.amazonaws.com\"\n\n// Filtro: identifica ações críticas que interrompem disponibilidade\n// - StopInstances: parada da instância\n// - TerminateInstances: término/remoção definitiva da instância\n| filter (eventName = \"StopInstances\" or eventName = \"TerminateInstances\")\n\n// Converte responseElements para string para facilitar busca de instanceId no payload\n// (útil quando o schema não expõe todos os instanceIds como campos separados)\n| alter elements = to_json_string(responseElements)\n\n// Filtro: mantém somente eventos que envolvam instâncias críticas (lista allowlist de instanceIds)\n// Observação: manter como OR explícito evita falhas quando não há suporte a listas/arrays no filtro.\n| filter\n    elements contains \"<EC2_INSTANCE_ID_1>\" or\n    elements contains \"<EC2_INSTANCE_ID_2>\" or\n    elements contains \"<EC2_INSTANCE_ID_3>\" or\n    elements contains \"<EC2_INSTANCE_ID_4>\" or\n    elements contains \"<EC2_INSTANCE_ID_5>\" or\n    elements contains \"<EC2_INSTANCE_ID_6>\" or\n    elements contains \"<EC2_INSTANCE_ID_7>\" or\n    elements contains \"<EC2_INSTANCE_ID_8>\" or\n    elements contains \"<EC2_INSTANCE_ID_9>\" or\n    elements contains \"<EC2_INSTANCE_ID_10>\" or\n    elements contains \"<EC2_INSTANCE_ID_11>\" or\n    elements contains \"<EC2_INSTANCE_ID_12>\" or\n    elements contains \"<EC2_INSTANCE_ID_13>\" or\n    elements contains \"<EC2_INSTANCE_ID_14>\" or\n    elements contains \"<EC2_INSTANCE_ID_15>\" or\n    elements contains \"<EC2_INSTANCE_ID_16>\" or\n    elements contains \"<EC2_INSTANCE_ID_17>\" or\n    elements contains \"<EC2_INSTANCE_ID_18>\"\n\n// Extração: identifica o executor da ação (principalId do userIdentity)\n// Isso ajuda a diferenciar console vs automação e facilita allowlist/exception.\n| alter user_principal_id = to_json_string(useridentity) -> principalId\n\n// Exclusão: ignora execuções esperadas por automações/agendadores conhecidos\n// Observação: 'not in' aqui depende do parser aceitar curingas; se não funcionar,\n// substitua por \"not contains\" com as strings.\n| filter user_principal_id not in (\"*<AUTOMATION_PRINCIPAL_1>*\", \"*<AUTOMATION_PRINCIPAL_2>*\")\n\n// Extração: captura o instanceId (primeiro item do instancesSet)\n// Observação: em StopInstances/TerminateInstances podem existir múltiplas instâncias no mesmo evento;\n// este caminho pega apenas o primeiro item. Se precisar de todos, dá para adaptar para values().\n| alter instance_id = to_json_string(responseElements) -> instancesSet.items[0].instanceId\n\n// Saída final: campos recomendados para alerta/correlação e auditoria\n| fields\n    _time,              // Timestamp no XSIAM\n    eventTime,          // Timestamp original do CloudTrail\n    eventName,          // Ação executada (StopInstances/TerminateInstances)\n    user_principal_id,  // Executor (principalId)\n    instance_id,        // Instância impactada (primeira do payload)\n    userAgent,          // Origem (console/cli/sdk)\n    userIdentity,       // Objeto completo do executor (evidência)\n    responseElements,   // Detalhes da resposta (evidência)\n    requestParameters   // Parâmetros (ex.: instanceIds solicitadas)\n",
+    "is_enabled": false,
+    "description": "Instâncias EC2 críticas da AWS paradas ou encerradas.",
+    "alert_name": "Critical EC2 instances (Stop ou Terminate)",
+    "alert_category": "User Defined",
+    "alert_type": null,
+    "alert_description": "O usuário $user_principal_id realizou a ação $eventName na instância $instance_id. Esta instância pertence ao grupo de instâncias críticas que não devem ser paradas ou encerradas.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "REAL_TIME",
+    "search_window": null,
+    "simple_schedule": null,
+    "timezone": null,
+    "crontab": null,
+    "suppression_enabled": false,
+    "suppression_duration": null,
+    "suppression_fields": null,
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": "instance_id",
+    "mitre_defs": {
+      "TA0042 - Resource Development": [
+        "T1584 - Compromise Infrastructure"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

@@ -1,0 +1,45 @@
+[
+  {
+    "rule_id": 7,
+    "name": "MS_RiskEvent AnonymizedIP Login Detected (VPN/TOR)",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: MS_RiskEvent AnonymizedIP Login Detected (VPN/TOR)\n// Vendor: Microsoft EntraID\n// Objective:\n// Detect activity associated with MS_RiskEvent AnonymizedIP Login Detected (VPN/TOR).\n// Severity: SEV_040_HIGH\n// Category: EVASION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0003 - Persistence\n// Tactic: TA0005 - Defense Evasion\n// Technique: T1211 - Exploitation for Defense Evasion\n// Tactic: TA0006 - Credential Access\n// Technique: T1212 - Exploitation for Credential Access\n\nconfig case_sensitive = false\n| dataset = msft_azure_raw\n| alter\n    timestamp = _time,\n    userPrincipalName = properties -> userPrincipalName,\n    userDisplayName = properties -> userDisplayName,\n    userId = properties -> userId,\n    ipAddress = properties -> ipAddress,\n    city = properties -> location.city,\n    state = properties -> location.state,\n    countryOrRegion = properties -> location.countryOrRegion,\n    geoCoordinates = properties -> location.geoCoordinates,\n    appDisplayName = properties -> appDisplayName,\n    resultType = properties -> resultType,\n    resultDescription = properties -> resultDescription,\n    riskEventType = properties -> riskEventType\n| filter riskEventType = \"anonymizedIPAddress\"\n| fields timestamp, userPrincipalName, userDisplayName, userId, ipAddress, city, state, countryOrRegion, geoCoordinates, appDisplayName, resultType, resultDescription, riskEventType\n",
+    "is_enabled": false,
+    "description": "Autenticação (com sucesso ou falha) associada ao evento de risco \"anonymizedIPAddress\". Pode indicar uma tentativa de ofuscar a origem do login, como o uso de VPNs ou proxies.",
+    "alert_name": "MS_RiskEvent AnonymizedIP Login Detected (VPN/TOR)",
+    "alert_category": "EVASION",
+    "alert_type": null,
+    "alert_description": "Autenticação (com sucesso ou falha) associada ao evento de risco \"anonymizedIPAddress\". Pode indicar uma tentativa de ofuscar a origem do login, como o uso de VPNs ou proxies.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "action_local_ip": "ipAddress",
+      "actor_effective_username": "userPrincipalName",
+      "actor_process_command_line": "_raw_log"
+    },
+    "execution_mode": "SCHEDULED",
+    "search_window": "1 hours",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": false,
+    "suppression_duration": null,
+    "suppression_fields": null,
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0003 - Persistence": [],
+      "TA0005 - Defense Evasion": [
+        "T1211 - Exploitation for Defense Evasion"
+      ],
+      "TA0006 - Credential Access": [
+        "T1212 - Exploitation for Credential Access"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

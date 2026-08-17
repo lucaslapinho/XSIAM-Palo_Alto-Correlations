@@ -1,0 +1,39 @@
+[
+  {
+    "rule_id": 81,
+    "name": "THM_ClickFix Detection",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: THM_ClickFix Detection\n// Vendor: Windows\n// Objective:\n// Detect activity associated with THM_ClickFix Detection.\n// Severity: SEV_040_HIGH\n// Category: EXECUTION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0002 - Execution\n// Technique: T1059.001 - Command and Scripting Interpreter: PowerShell\n\n// Configuração inicial: define que as comparações não diferenciam maiúsculas/minúsculas  \nconfig case_sensitive = false  \n\n// Fonte de dados: dataset de telemetria de endpoint do Cortex XDR  \n// O dataset 'xdr_data' contém eventos brutos coletados pelos agentes instalados  \n// nos endpoints (Windows, Linux, macOS), incluindo processos, rede, e alterações de registro  \n| dataset = xdr_data  \n\n// Filtro para restringir a eventos provenientes de sistemas operacionais Windows  \n// Garante que apenas endpoints com Windows sejam considerados na análise  \n| filter agent_os_type = ENUM.AGENT_OS_WINDOWS  \n\n// Filtro para selecionar somente eventos relacionados a alterações no registro do Windows  \n// O tipo ENUM.REGISTRY indica eventos de acesso ao registro  \n// O subtipo ENUM.REGISTRY_SET_VALUE indica modificação de valores existentes  \n| filter event_type = ENUM.REGISTRY  \n| filter event_sub_type = ENUM.REGISTRY_SET_VALUE  \n\n// Filtro para restringir o processo responsável pela alteração  \n// O processo 'explorer.exe' é o gerenciador de interface do Windows (shell padrão)  \n// e normalmente interage com o registro por ações do usuário — aqui, serve para identificar abuso do contexto legítimo  \n| filter actor_process_image_name = \"explorer.exe\"  \n\n// Filtro para detectar alterações específicas na chave de registro 'RunMRU'  \n// Essa chave armazena o histórico de comandos executados via \"Executar\" (Win+R)  \n// e pode ser usada para persistência maliciosa ou execução automática de comandos  \n| filter action_registry_key_name contains \"SOFTWARE\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\Explorer\\\\RunMRU\"  \n\n// Filtro para detectar conteúdo suspeito dentro dos valores gravados  \n// Busca execuções de PowerShell com parâmetros incomuns, como \"/bomla\"  \n// que pode indicar atividade de script ou tentativa de execução automatizada maliciosa  \n| filter action_registry_data contains \"powershell\"  \n| filter action_registry_data contains \"/bomla\"  \n\n// Seleção dos campos relevantes para análise forense e enriquecimento  \n| fields agent_id,                                // Identificador único do agente (endpoint)  \n         causality_actor_process_image_name,      // Processo raiz da cadeia causal  \n         actor_process_image_name,                // Processo que executou a modificação no registro  \n         action_registry_key_name,                // Caminho completo da chave de registro alterada  \n         action_registry_data,                    // Dados escritos no valor de registro  \n         event_sub_type                           // Subtipo de evento do registro (ex: SET_VALUE)\n",
+    "is_enabled": false,
+    "description": "Esta consulta identifica o explorer.exe escrevendo linhas de comando do PowerShell que buscam dados de um URI /bomla em entradas de registro do RunMRU - atividade consistente com infecções do ClickFix.",
+    "alert_name": "THM_ClickFix Detection",
+    "alert_category": "EXECUTION",
+    "alert_type": null,
+    "alert_description": "Detecção de modificação suspeita na chave de registro RunMRU pelo processo explorer.exe, contendo execução de PowerShell com o parâmetro /bomla, indicando possível tentativa de persistência ou execução automatizada maliciosa.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "SCHEDULED",
+    "search_window": "1 hours",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "10 minutes",
+    "suppression_fields": [
+      "agent_id"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0002 - Execution": [
+        "T1059.001 - Command and Scripting Interpreter: PowerShell"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "AUTO",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

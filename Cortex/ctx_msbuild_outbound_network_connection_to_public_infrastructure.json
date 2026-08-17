@@ -1,0 +1,39 @@
+[
+  {
+    "rule_id": 156,
+    "name": "CTX_MSBuild Outbound Network Connection to Public Infrastructure",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: CTX_MSBuild Outbound Network Connection to Public Infrastructure\n// Vendor: Cortex\n// Objective:\n// Detect activity associated with CTX_MSBuild Outbound Network Connection to Public Infrastructure.\n// Severity: SEV_040_HIGH\n// Category: PERSISTENCE\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0011 - Command and Control\n// Technique: T1071.001 - Application Layer Protocol: Web Protocols\n\n// Title: CTX - MSBuild Outbound Network Connection to Public Infrastructure\n// Description: Detecta msbuild.exe realizando conexão de rede para IP público.\n// Pode indicar abuso do MSBuild como proxy execution ou canal de C2 via trusted binary.\n// MITRE ATT&CK: T1071.001 (Web Protocols - C2), T1127.001 (MSBuild - Defense Evasion)\n//\n// NOTA TH: MSBuild com tráfego externo é indicativo de payload .NET inline no projeto.\n// A técnica permite execução de shellcode via <UsingTask> em arquivo .csproj/.targets.\n// Pivô recomendado: localizar o arquivo .csproj referenciado no command_line e analisar\n// o conteúdo inline — procurar por TaskFactory=\"CodeTaskFactory\" com código ofuscado.\n//\n// ALERT_CATEGORY CORRIGIDO [v2]: \"COMMAND_AND_CONTROL\" não é categoria válida no XSIAM.\n// Categoria corrigida para DEFENSE_EVASION (tática primária do T1127.001).\n//\n// CORREÇÃO [v2]: Adicionado \\Microsoft.NET\\Framework64 ao filtro de path.\n// Framework64 cobre o msbuild.exe de 64 bits, que é o padrão em sistemas modernos.\n\nconfig case_sensitive = false\n| dataset = xdr_data\n\n// STORY consolida eventos de rede e processo correlacionados no XDR/XSIAM\n| filter agent_os_type = ENUM.AGENT_OS_WINDOWS\n| filter event_type = ENUM.STORY\n\n| fields\n    _time,\n    agent_hostname,\n    agent_ip_addresses,\n    actor_effective_username,\n    actor_process_image_name,\n    actor_process_image_path,\n    actor_process_command_line,\n    action_remote_ip,\n    action_remote_port,\n    agent_external_ip\n\n| alter actor_cmd = lowercase(actor_process_command_line)\n\n// Filtro 1: processo é MSBuild\n| filter actor_process_image_name = \"msbuild.exe\"\n\n// Filtro 2: limita a MSBuild do .NET Framework (32 ou 64 bits)\n// Evita falsos positivos de ferramentas de terceiros que renomeiam binários para msbuild.exe\n| filter actor_process_image_path contains \"\\\\Microsoft.NET\\\\Framework\"\n    or actor_process_image_path contains \"\\\\Microsoft.NET\\\\Framework64\"\n\n// Filtro 3: exclui IPs privados (RFC 1918, loopback e link-local)\n| filter not (action_remote_ip ~= \"^(10\\\\.|127\\\\.|169\\\\.254\\\\.|172\\\\.(1[6-9]|2[0-9]|3[01])\\\\.|192\\\\.168\\\\.)\")\n\n// Filtro 4: portas comuns de C2 e web — foco intencional, não exaustivo\n// Nota: porta 53 (DNS) não incluída aqui; para C2 via DNS, criar regra dedicada\n| filter action_remote_port in (80, 443, 8080, 8443, 8888, 9443)\n",
+    "is_enabled": false,
+    "description": "Detecta msbuild.exe realizando conexão externa, especialmente para IP público ou portas não usuais. Em endpoints comuns, MSBuild com tráfego externo é comportamento raro e deve ser investigado.",
+    "alert_name": "CTX_MSBuild Outbound Network Connection to Public Infrastructure",
+    "alert_category": "PERSISTENCE",
+    "alert_type": null,
+    "alert_description": "Detectada conexão externa realizada pelo MSBuild no host $agent_hostname . Destino: $action_remote_ip: $action_remote_port . O comportamento pode indicar abuso de ferramenta legítima para comunicação com infraestrutura externa.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "SCHEDULED",
+    "search_window": "1 hours",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "agent_hostname"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0011 - Command and Control": [
+        "T1071.001 - Application Layer Protocol: Web Protocols"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

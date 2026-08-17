@@ -1,0 +1,44 @@
+[
+  {
+    "rule_id": 144,
+    "name": "NGFW_HA Failure",
+    "severity": "SEV_050_CRITICAL",
+    "xql_query": "// ============================================================\n// Rule: NGFW_HA Failure\n// Vendor: Palo Alto NGFW\n// Objective:\n// Detect activity associated with NGFW_HA Failure.\n// Severity: SEV_050_CRITICAL\n// Category: OTHER\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0040 - Impact\n// Technique: T1499 - Endpoint Denial of Service\n// Technique: T1499.004 - Endpoint Denial of Service: Application or System Exploitation\n\n// Configuração inicial:\n// Define que as comparações de texto não diferenciam\n// letras maiúsculas/minúsculas.\nconfig case_sensitive = false\n\n// Fonte de dados:\n// Utiliza os logs de sistema dos firewalls Palo Alto Networks.\n| dataset = panw_ngfw_system_raw\n\n// Filtro de subtipo:\n// Mantém somente eventos relacionados a High Availability.\n// O subtipo \"ha\" representa eventos de HA, como falha,\n// sincronização, failover e perda de comunicação entre peers.\n| filter sub_type = \"ha\"\n\n// Normalização da mensagem:\n// Converte a descrição do evento para minúsculas,\n// facilitando comparações textuais consistentes.\n| alter ha_msg = lowercase(event_description)\n\n// Filtro principal:\n// Identifica mensagens que indicam perda total de comunicação\n// nos links de HA.\n//\n// HA1:\n// Canal usado principalmente para controle, heartbeat,\n// troca de estado e comunicação entre os firewalls do par HA.\n//\n// HA2:\n// Canal usado para sincronização de sessões, tabelas e estados,\n// especialmente em ambientes Active/Passive ou Active/Active.\n| filter (\n    ha_msg contains \"all ha1 connections down\"\n    or ha_msg contains \"all ha1 links down\"\n    or ha_msg contains \"all ha2 links down\"\n)\n\n// Seleção de campos:\n// Retorna os principais campos para investigação,\n// identificação da origem e análise do evento.\n| fields \n    _time,              // Data e hora do evento\n    log_source_name,    // Nome da origem do log/firewall\n    log_source_id,      // Identificador da origem do log\n    severity,           // Severidade informada pelo firewall\n    event_name,         // Nome do evento registrado\n    event_description   // Descrição completa do evento de HA\n",
+    "is_enabled": false,
+    "description": "Esta correlation monitora logs de sistema de firewalls Palo Alto Networks para identificar falhas críticas de High Availability relacionadas à perda total dos links ou conexões HA1 e HA2. A detecção busca mensagens como “all ha1 connections down”, “all ha1 links down” e “all ha2 links down”, que podem indicar perda de comunicação entre os membros do cluster HA, risco de failover, degradação de sincronismo ou indisponibilidade parcial da arquitetura de alta disponibilidade.",
+    "alert_name": "NGFW_HA Failure",
+    "alert_category": "OTHER",
+    "alert_type": null,
+    "alert_description": "Foi detectada uma falha crítica de High Availability (HA) no firewall $log_source_name. O evento $event_name foi registrado em $_time com severidade $severity. Descrição: $event_description. ID da origem do log: $log_source_id. Validar imediatamente o estado do cluster HA, links HA1/HA2 e possível impacto na disponibilidade do firewall.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "deviceid": "log_source_id",
+      "devicename": "log_source_name",
+      "eventdescriptions": "event_description"
+    },
+    "execution_mode": "REAL_TIME",
+    "search_window": null,
+    "simple_schedule": null,
+    "timezone": null,
+    "crontab": null,
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "log_source_name"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0040 - Impact": [
+        "T1499 - Endpoint Denial of Service",
+        "T1499.004 - Endpoint Denial of Service: Application or System Exploitation"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

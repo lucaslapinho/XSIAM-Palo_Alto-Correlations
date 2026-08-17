@@ -1,0 +1,54 @@
+[
+  {
+    "rule_id": 9,
+    "name": "MS_RiskEvent Unfamiliar Features Login Detected",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: MS_RiskEvent Unfamiliar Features Login Detected\n// Vendor: Microsoft EntraID\n// Objective:\n// Detect activity associated with MS_RiskEvent Unfamiliar Features Login Detected.\n// Severity: SEV_040_HIGH\n// Category: EVASION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0003 - Persistence\n// Tactic: TA0001 - Initial Access\n// Technique: T1078 - Valid Accounts\n// Tactic: TA0005 - Defense Evasion\n// Technique: T1211 - Exploitation for Defense Evasion\n// Tactic: TA0006 - Credential Access\n// Technique: T1212 - Exploitation for Credential Access\n// Technique: T1110 - Brute Force\n// Tactic: TA0011 - Command and Control\n// Technique: T1090.002 - Proxy: External Proxy\n\nconfig case_sensitive = false\n| dataset = msft_azure_raw\n| alter\n    timestamp = _time,\n    riskDetectionId = coalesce(properties -> id, correlationid),\n    userPrincipalName = properties -> userPrincipalName,\n    userDisplayName = properties -> userDisplayName,\n    userId = properties -> userId,\n    ipAddress = properties -> ipAddress,\n    city = properties -> location.city,\n    state = properties -> location.state,\n    countryOrRegion = properties -> location.countryOrRegion,\n    geoCoordinates = properties -> location.geoCoordinates,\n    appDisplayName = properties -> appDisplayName,\n    riskState = properties -> riskState,\n    resultType = properties -> resultType,\n    resultDescription = properties -> resultDescription,\n    riskEventType = properties -> riskEventType\n| filter riskEventType = \"unfamiliarFeatures\"\n| filter riskState not in (\"remediated\", \"dismissed\", \"confirmedSafe\")\n| fields\n    timestamp,\n    riskDetectionId,\n    userPrincipalName,\n    userDisplayName,\n    userId,\n    ipAddress,\n    city,\n    state,\n    countryOrRegion,\n    geoCoordinates,\n    appDisplayName,\n    resultType,\n    resultDescription,\n    riskEventType\n",
+    "is_enabled": false,
+    "description": "Tentativa de login detectada no Azure AD com características incomuns, como dispositivo, localização ou horário atípico para o usuário. Esse comportamento pode indicar acesso não autorizado ou comprometimento de conta.",
+    "alert_name": "MS_RiskEvent Unfamiliar Features Login Detected",
+    "alert_category": "EVASION",
+    "alert_type": null,
+    "alert_description": "Tentativa de login detectada no Azure AD com características incomuns, como dispositivo, localização ou horário atípico para o usuário. Esse comportamento pode indicar acesso não autorizado ou comprometimento de conta.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "action_local_ip": "ipAddress",
+      "actor_effective_username": "userPrincipalName",
+      "actor_process_command_line": "_raw_log"
+    },
+    "execution_mode": "SCHEDULED",
+    "search_window": "1 hours",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "1 days",
+    "suppression_fields": [
+      "riskDetectionId"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0003 - Persistence": [],
+      "TA0001 - Initial Access": [
+        "T1078 - Valid Accounts"
+      ],
+      "TA0005 - Defense Evasion": [
+        "T1211 - Exploitation for Defense Evasion"
+      ],
+      "TA0006 - Credential Access": [
+        "T1212 - Exploitation for Credential Access",
+        "T1110 - Brute Force"
+      ],
+      "TA0011 - Command and Control": [
+        "T1090.002 - Proxy: External Proxy"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

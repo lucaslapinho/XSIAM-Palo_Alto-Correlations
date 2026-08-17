@@ -1,0 +1,39 @@
+[
+  {
+    "rule_id": 155,
+    "name": "CTX_Suspicious WScript to PowerShell to MSBuild Execution Chain",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: CTX_Suspicious WScript to PowerShell to MSBuild Execution Chain\n// Vendor: Cortex\n// Objective:\n// Detect activity associated with CTX_Suspicious WScript to PowerShell to MSBuild Execution Chain.\n// Severity: SEV_040_HIGH\n// Category: EVASION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0005 - Defense Evasion\n// Technique: T1127.001 - Trusted Developer Utilities Proxy Execution: MSBuild\n\n// Title: CTX - Suspicious WScript to PowerShell to MSBuild Execution Chain\n// Description: Detecta cadeia de execução wscript/cscript/mshta → powershell → msbuild.\n// Esse padrão é raro em estações comuns e indica abuso de trusted developer utility (LOLBAS).\n// MITRE ATT&CK: T1127.001 (MSBuild - Defense Evasion), T1059.001 (PowerShell), T1059.005 (VBScript)\n//\n// NOTA TH: A cadeia wscript→PS→MSBuild é clássica de ataques que usam MSBuild para executar\n// código .NET inline (via arquivo .csproj ou .targets malicioso), evitando EDR focado em PE.\n// Prioridade após disparo: localizar o arquivo de projeto MSBuild referenciado no command_line\n// e extrair o conteúdo inline para análise. Verificar se há criação de processo filho por MSBuild.\n//\n// ALLOWLIST: Hosts de desenvolvimento e build servers com VS instalado devem ser excluídos.\n// O filtro de TEMP no actor_cmd visa eliminar builds legítimos que não passam por diretórios temporários.\n// mshta.exe foi intencionalmente incluído no causality: é vetor frequente de stage inicial via HTML App.\n\nconfig case_sensitive = false\n| dataset = xdr_data\n\n| filter agent_os_type = ENUM.AGENT_OS_WINDOWS\n| filter event_type = ENUM.PROCESS\n    and event_sub_type = ENUM.PROCESS_START\n\n| fields\n    _time,\n    agent_hostname,\n    agent_ip_addresses,\n    actor_effective_username,\n    causality_actor_process_image_name,\n    causality_actor_process_image_path,\n    causality_actor_process_command_line,\n    actor_process_image_name,\n    actor_process_image_path,\n    actor_process_command_line,\n    action_process_image_name,\n    action_process_image_path,\n    action_process_image_command_line,\n    action_process_image_sha256\n\n| alter actor_cmd = lowercase(actor_process_command_line)\n| alter action_cmd = lowercase(action_process_image_command_line)\n\n// Filtro de cadeia: MSBuild como alvo final da execução\n| filter action_process_image_name = \"msbuild.exe\"\n\n// Parent imediato deve ser PowerShell — indica que PS foi o orquestrador do build malicioso\n| filter actor_process_image_name in (\"powershell.exe\", \"pwsh.exe\")\n\n// Avô (causality) deve ser engine de script — confirma origem da cadeia via script\n// mshta.exe incluído: vetor HTML Application (.hta) é ponto de entrada comum\n| filter causality_actor_process_image_name in (\"wscript.exe\", \"cscript.exe\", \"mshta.exe\")\n\n// Contexto adicional: PowerShell operando em diretório temporário ou usando script nomeado como temp\n// Nota: o filtro é OR — basta um dos dois para indicar comportamento anômalo\n| filter actor_cmd ~= \"(\\\\\\\\temp\\\\\\\\|c:\\\\\\\\temp\\\\\\\\|%temp%|\\\\\\\\appdata\\\\\\\\)\"\n    or actor_cmd ~= \"ps_[a-z0-9_\\\\-]+\\\\.ps1\"\n\n| sort desc _time\n",
+    "is_enabled": false,
+    "description": "Detecta cadeia de execução incomum envolvendo wscript.exe/cscript.exe, powershell.exe e msbuild.exe, padrão associado a execução indireta, hollowing ou abuso de ferramenta legítima.",
+    "alert_name": "CTX_Suspicious WScript to PowerShell to MSBuild Execution Chain",
+    "alert_category": "EVASION",
+    "alert_type": null,
+    "alert_description": "Detectada cadeia de execução suspeita envolvendo script engine, PowerShell e MSBuild no host $agent_hostname . Essa sequência pode indicar abuso de utilitário legítimo para execução indireta de código.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "SCHEDULED",
+    "search_window": "1 hours",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "agent_hostname"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0005 - Defense Evasion": [
+        "T1127.001 - Trusted Developer Utilities Proxy Execution: MSBuild"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "AUTO",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

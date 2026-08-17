@@ -1,0 +1,39 @@
+[
+  {
+    "rule_id": 65,
+    "name": "THM_cmd.exe LNK Execution",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: THM_cmd.exe LNK Execution\n// Vendor: Windows\n// Objective:\n// Detect activity associated with THM_cmd.exe LNK Execution.\n// Severity: SEV_040_HIGH\n// Category: EXECUTION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0002 - Execution\n// Technique: T1059.003 - Command and Scripting Interpreter: Windows Command Shell\n\n// Fonte de dados: eventos do Cortex XDR\ndataset = xdr_data\n\n// Seleção de campos relevantes para análise de processos\n| fields _time,                                                     // Data e hora do evento  \n                agent_os_type,                                      // Sistema operacional do agente          \n                agent_hostname,                                     // Nome do host\n                event_type,                                         // Tipo de evento (ex: PROCESS, NETWORK, etc.)\n                event_sub_type,                                     // Subtipo do evento (ex: PROCESS_START)  \n                actor_process_image_name,                           // Nome do processo que iniciou a ação            \n                actor_process_command_line,                         // Linha de comando do processo que originou             \n                action_process_image_command_line,                  // Linha de comando do processo em execução                     \n                action_process_image_path,                          // Caminho completo do processo             \n                action_process_image_name                           // Nome do processo em execução             \n\n// Filtro para capturar apenas eventos de processo do tipo \"PROCESS_START\"\n| filter event_type = ENUM.PROCESS and event_sub_type = ENUM.PROCESS_START \n\n// Filtro adicional: detecção de execução do cmd.exe\n// - O comando inclui \"/k set\"\n// - O comando também faz referência a arquivos \".lnk\"\n// (padrão associado a execução encadeada de atalhos maliciosos)\n| filter lowercase(action_process_image_name) = \"cmd.exe\" \n    and lowercase(action_process_image_command_line) contains \"/k set\"\n    and lowercase(action_process_image_command_line) contains \".lnk\"\n",
+    "is_enabled": false,
+    "description": "Identifica execuções suspeitas do cmd.exe utilizando o parâmetro /k set em conjunto com referências a arquivos .lnk. Esse padrão pode indicar tentativas de persistência ou execução de comandos maliciosos através de atalhos manipulados.",
+    "alert_name": "THM_cmd.exe LNK Execution",
+    "alert_category": "EXECUTION",
+    "alert_type": null,
+    "alert_description": "Este alerta foi acionado no host $agent_hostname , onde o processo $actor_process_image_name foi executado. A linha de comando original utilizada foi $actor_process_command_line , resultando na execução da linha de comando $action_process_image_command_line . Esse comportamento pode indicar atividade suspeita e requer investigação adicional.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "REAL_TIME",
+    "search_window": null,
+    "simple_schedule": null,
+    "timezone": null,
+    "crontab": null,
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "agent_hostname"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0002 - Execution": [
+        "T1059.003 - Command and Scripting Interpreter: Windows Command Shell"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

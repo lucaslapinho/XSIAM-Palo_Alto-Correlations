@@ -1,0 +1,38 @@
+[
+  {
+    "rule_id": 23,
+    "name": "FTG_Local User Account Created",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: FTG_Local User Account Created\n// Vendor: Fortigate\n// Objective:\n// Detect activity associated with FTG_Local User Account Created.\n// Severity: SEV_040_HIGH\n// Category: OTHER\n// ============================================================\n// SANITIZED: Environment-specific values replaced with generic placeholders.\n// MITRE ATT&CK:\n// Tactic: TA0003 - Persistence\n// Technique: T1136 - Create Account\n// Technique: T1136.001 - Create Account: Local Account\n\n// Fonte de dados: logs brutos do Fortinet FortiGate\ndataset = fortinet_fortigate_raw  \n\n// Filtra apenas mensagens que contenham o termo \"accprofile\"\n// Normalmente relacionado a perfis de acesso/controle no FortiGate\n| filter msg contains \"accprofile\"  \n\n// Criação de campos derivados para facilitar a análise dos resultados\n| alter\n    timestamp = _time,                    // Momento em que o evento ocorreu\n    src_ip = src,                         // Endereço IP de origem\n    dst_ip = dst,                         // Endereço IP de destino\n    log_message = msg,                     // Mensagem bruta do log\n    action_taken = act,                   // Ação registrada pelo dispositivo\n    application = app,                    // Aplicação associada ao evento\n    request_origin = dhost,               // Host de destino ou origem da requisição\n    user = duser,                         // Usuário envolvido (quando aplicável)\n    device_name = _reporting_device_name  // Nome do dispositivo FortiGate que gerou o log\n\n// Seleção dos campos principais para exibição\n| fields timestamp, device_name, src_ip, dst_ip, log_message, application, action_taken, request_origin, user\n",
+    "is_enabled": false,
+    "description": "Alerta gerado quando um dispositivo Fortinet FortiGate reporta um evento de criação de conta de usuário local dentro do domínio <ORGANIZATION>. Identifica especificamente mensagens do sistema contendo o termo \"accprofile\", comumente associado à configuração de usuários locais. Pode indicar alterações administrativas ou provisionamento não autorizado de contas.",
+    "alert_name": "FTG_Local User Account Created",
+    "alert_category": "OTHER",
+    "alert_type": null,
+    "alert_description": "Alerta gerado quando um dispositivo Fortinet FortiGate reporta um evento de criação de conta de usuário local dentro do domínio <ORGANIZATION>. Identifica especificamente mensagens do sistema contendo o termo \"accprofile\", comumente associado à configuração de usuários locais. Pode indicar alterações administrativas ou provisionamento não autorizado de contas.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "REAL_TIME",
+    "search_window": null,
+    "simple_schedule": null,
+    "timezone": null,
+    "crontab": null,
+    "suppression_enabled": false,
+    "suppression_duration": null,
+    "suppression_fields": null,
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0003 - Persistence": [
+        "T1136 - Create Account",
+        "T1136.001 - Create Account: Local Account"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

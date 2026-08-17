@@ -1,0 +1,53 @@
+[
+  {
+    "rule_id": 182,
+    "name": "WIN_Suspicious Remote Access Run Key Persistence",
+    "severity": "SEV_030_MEDIUM",
+    "xql_query": "// ============================================================\n// Rule: WIN_Suspicious Remote Access Run Key Persistence\n// Vendor: Windows\n// Objective:\n// Detect activity associated with WIN_Suspicious Remote Access Run Key Persistence.\n// Severity: SEV_030_MEDIUM\n// Category: EXECUTION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0003 - Persistence\n// Technique: T1547.001 - Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder\n\nconfig case_sensitive = false\n\n| dataset = xdr_data\n\n| filter agent_os_type = ENUM.AGENT_OS_WINDOWS\n| filter event_type = ENUM.REGISTRY\n\n| alter\n    registry_key_lc = lowercase(action_registry_key_name),\n    registry_value_name_lc = lowercase(action_registry_value_name),\n    registry_data_lc = lowercase(action_registry_data),\n    actor_process_name_lc = lowercase(actor_process_image_name)\n\n// Standard user or machine Run / RunOnce persistence locations\n| filter registry_key_lc ~= \".*\\\\\\\\software\\\\\\\\microsoft\\\\\\\\windows\\\\\\\\currentversion\\\\\\\\run(once)?$\"\n\n// Requested remote-access / masquerading references\n| filter\n    registry_value_name_lc in (\"anydesk\", \"splashtop\", \"comms\")\n    or registry_value_name_lc contains \"anydesk\"\n    or registry_value_name_lc contains \"splashtop\"\n    or registry_data_lc contains \"anydesk\"\n    or registry_data_lc contains \"splashtop\"\n    or registry_data_lc contains \"comms\"\n\n// Require additional risk context to reduce overlap with benign installs\n| filter\n    registry_data_lc ~= \".*(\\\\\\\\users\\\\\\\\[^\\\\\\\\]+\\\\\\\\(downloads|desktop|appdata\\\\\\\\local\\\\\\\\temp)\\\\\\\\|\\\\\\\\windows\\\\\\\\temp\\\\\\\\|\\\\\\\\temp\\\\\\\\).*\"\n    or registry_data_lc ~= \".*(powershell|pwsh|cmd\\\\.exe|wscript|cscript|mshta|rundll32).*\"\n    or actor_process_name_lc in (\"cmd.exe\", \"powershell.exe\", \"pwsh.exe\", \"reg.exe\", \"wscript.exe\", \"cscript.exe\", \"mshta.exe\", \"rundll32.exe\")\n\n| fields\n    _time,\n    agent_hostname,\n    agent_id,\n    agent_ip_addresses,\n    actor_effective_username,\n    actor_process_image_name,\n    actor_process_image_path,\n    actor_process_command_line,\n    actor_process_image_sha256,\n    action_registry_key_name,\n    action_registry_value_name,\n    action_registry_data,\n    event_type,\n    event_sub_type\n",
+    "is_enabled": false,
+    "description": "Detecta valores Run ou RunOnce que fazem referência a AnyDesk, Splashtop ou Comms quando a execução aponta para diretório de risco, intérprete de comandos ou é gravada por processo comumente abusado. A regra evita alertar somente pelo nome da ferramenta.",
+    "alert_name": "WIN_Suspicious Remote Access Run Key Persistence",
+    "alert_category": "EXECUTION",
+    "alert_type": null,
+    "alert_description": "Foi identificada persistência suspeita na chave $action_registry_key_name , valor $action_registry_value_name , no endpoint $agent_hostname . O conteúdo configurado foi $action_registry_data e a alteração foi realizada por $actor_process_image_name sob o usuário $actor_effective_username .",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "agent_hostname": "agent_hostname",
+      "action_local_ip": null,
+      "action_remote_ip": null,
+      "action_remote_port": null,
+      "agent_device_domain": null,
+      "actor_effective_username": "actor_effective_username",
+      "actor_process_image_name": "actor_process_image_name",
+      "actor_process_image_path": "actor_process_image_path",
+      "actor_process_command_line": "actor_process_command_line",
+      "actor_process_image_sha256": "actor_process_image_sha256"
+    },
+    "execution_mode": "SCHEDULED",
+    "search_window": "10 minutes",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "4 hours",
+    "suppression_fields": [
+      "agent_hostname",
+      "action_registry_key_name",
+      "action_registry_value_name",
+      "action_registry_data"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0003 - Persistence": [
+        "T1547.001 - Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

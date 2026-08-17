@@ -1,0 +1,42 @@
+[
+  {
+    "rule_id": 34,
+    "name": "CTX_Endpoint EDR Protection Uninstall",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: CTX_Endpoint EDR Protection Uninstall\n// Vendor: Cortex\n// Objective:\n// Detect activity associated with CTX_Endpoint EDR Protection Uninstall.\n// Severity: SEV_040_HIGH\n// Category: EVASION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0005 - Defense Evasion\n// Technique: T1562.001 - Impair Defenses: Disable or Modify Tools\n// Technique: T1562 - Impair Defenses\n\ndataset=management_auditing\n| filter subtype =\"Action Completed\" and description contains \"Uninstall agent\"\n| fields description, user_name, subtype\n",
+    "is_enabled": false,
+    "description": "Foi detectada a desinstalação de um agente de segurança em um endpoint. Esse tipo de ação pode indicar uma tentativa de remover mecanismos de defesa do sistema, seja por manutenção inadequada, falha de configuração ou atividade maliciosa. A remoção do agente compromete a visibilidade e a proteção do dispositivo, expondo-o a riscos e violando boas práticas de segurança.",
+    "alert_name": "CTX_Endpoint EDR Protection Uninstall",
+    "alert_category": "EVASION",
+    "alert_type": null,
+    "alert_description": "Foi detectada a desinstalação da proteção antivírus em um endpoint pelo usuário $user_name . $description",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "agent_hostname": "description",
+      "action_remote_ip": "subtype",
+      "actor_process_image_path": "user_name"
+    },
+    "execution_mode": "SCHEDULED",
+    "search_window": "10 minutes",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": false,
+    "suppression_duration": null,
+    "suppression_fields": null,
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0005 - Defense Evasion": [
+        "T1562.001 - Impair Defenses: Disable or Modify Tools",
+        "T1562 - Impair Defenses"
+      ]
+    },
+    "investigation_query_link": "dataset=management_auditing\r\n| filter subtype =\"Action Completed\" and description contains \"Protection Pause\"\r\n| fields description, user_name, subtype ",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

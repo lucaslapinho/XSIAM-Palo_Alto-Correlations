@@ -1,0 +1,38 @@
+[
+  {
+    "rule_id": 148,
+    "name": "Endpoint Monitorado Online (Copy)",
+    "severity": "SEV_050_CRITICAL",
+    "xql_query": "// ============================================================\n// Rule: Endpoint Monitorado Online (Copy)\n// Vendor: Cortex\n// Objective:\n// Detect activity associated with Endpoint Monitorado Online (Copy).\n// Severity: SEV_050_CRITICAL\n// Category: OTHER\n// ============================================================\n// SANITIZED: Environment-specific values replaced with generic placeholders.\n\ndataset=endpoints\n| filter endpoint_name = \"<ENDPOINT_NAME>\"\n| fields endpoint_name, last_seen, endpoint_status \n| filter endpoint_status contains \"CONNECTED\" and endpoint_status not contains \"DISCONNECTED\"\n",
+    "is_enabled": false,
+    "description": null,
+    "alert_name": "Endpoint Monitorado Online",
+    "alert_category": "OTHER",
+    "alert_type": null,
+    "alert_description": "Endpoint Monitorado está online.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "agent_hostname": "endpoint_name",
+      "actor_process_image_path": "last_seen"
+    },
+    "execution_mode": "SCHEDULED",
+    "search_window": "20 minutes",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "3 hours",
+    "suppression_fields": [
+      "endpoint_name"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {},
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

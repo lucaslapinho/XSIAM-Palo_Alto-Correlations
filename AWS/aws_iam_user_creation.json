@@ -1,0 +1,38 @@
+[
+  {
+    "rule_id": 102,
+    "name": "AWS_IAM User creation",
+    "severity": "SEV_030_MEDIUM",
+    "xql_query": "// ============================================================\n// Rule: AWS_IAM User creation\n// Vendor: AWS\n// Objective:\n// Detect activity associated with AWS_IAM User creation.\n// Severity: SEV_030_MEDIUM\n// Category: PERSISTENCE\n// ============================================================\n// SANITIZED: Environment-specific values replaced with generic placeholders.\n// MITRE ATT&CK:\n// Tactic: TA0003 - Persistence\n// Technique: T1136.003 - Create Account: Cloud Account\n// Technique: T1136 - Create Account\n\n// Configuração inicial: comparações não diferenciam maiúsculas/minúsculas\n// Objetivo: evitar perda de eventos por variações de caixa em campos textuais\nconfig case_sensitive = false\n\n// Fonte de dados: logs brutos do AWS (CloudTrail)\n// O dataset 'amazon_aws_raw' contém eventos de auditoria (ex.: criação de usuários, alterações IAM, etc.)\n| dataset = amazon_aws_raw\n\n// Filtro: monitora criação de usuário IAM\n// eventName = \"CreateUser\" indica criação de um novo usuário no IAM\n| filter eventName = \"CreateUser\"\n\n// Extração/normalização de campos relevantes do payload\n// Observação: alguns campos podem ser objetos; por isso convertemos para string JSON antes de acessar chaves internas.\n// - executor_user: identifica quem executou a ação (principalId do userIdentity)\n// - user_id_created: userId do usuário IAM recém-criado dentro de responseElements.user.userId\n| alter\n    executor_user   = to_json_string(useridentity) -> principalId,\n    user_id_created = to_json_string(responseelements) -> user.userId,\n    aws_user_arn    = to_json_string(responseelements) -> user.arn\n    \n\n| alter\n    aws_username = arrayindex(regextract(aws_user_arn, \"[^/]+$\"), 0)\n// Seleção dos campos relevantes para auditoria e notificação do alerta\n| fields\n    _time,               // Timestamp do evento no XSIAM\n    eventTime,           // Timestamp original do CloudTrail\n    eventName,           // Nome da ação (CreateUser)\n    eventSource,         // Serviço origem (ex.: iam.amazonaws.com)\n    executor_user,       // Executor (principalId)\n    aws_username,\n    user_id_created,     // ID do usuário criado (IAM userId)\n    userIdentity,        // Objeto completo do executor (evidência)\n    requestParameters,   // Parâmetros da requisição (ex.: nome do usuário, path)\n    responseElements,    // Resposta (detalhes do usuário criado)\n    userAgent,           // User-Agent (console, SDK, CLI, etc.)\n    sourceIPAddress      // IP de origem do executor\n\n//Exception para o time de Cloud.\n| filter ((`executor_user` not contains \"\"\"<USER_EMAIL_1>\"\"\" and `executor_user` not contains \"\"\"<USER_EMAIL_2>\"\"\" and `executor_user` not contains \"\"\"<USER_EMAIL_3>\"\"\"))\n| filter (eventSource != \"\"\"sso-directory.amazonaws.com\"\"\")\n",
+    "is_enabled": false,
+    "description": "Regra para detectar quando um usuario é criado no IAM da AWS.",
+    "alert_name": "AWS IAM User creation",
+    "alert_category": "PERSISTENCE",
+    "alert_type": null,
+    "alert_description": "O usuário $executor_user criou um novo usuário no serviço de identidade da AWS (IAM Identity Center), com o nome: $aws_username e ID: $user_id_created",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "REAL_TIME",
+    "search_window": null,
+    "simple_schedule": null,
+    "timezone": null,
+    "crontab": null,
+    "suppression_enabled": false,
+    "suppression_duration": null,
+    "suppression_fields": null,
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0003 - Persistence": [
+        "T1136.003 - Create Account: Cloud Account",
+        "T1136 - Create Account"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

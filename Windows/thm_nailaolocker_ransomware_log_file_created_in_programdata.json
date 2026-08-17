@@ -1,0 +1,37 @@
+[
+  {
+    "rule_id": 56,
+    "name": "THM_Nailaolocker Ransomware Log File Created in ProgramData",
+    "severity": "SEV_050_CRITICAL",
+    "xql_query": "// ============================================================\n// Rule: THM_Nailaolocker Ransomware Log File Created in ProgramData\n// Vendor: Windows\n// Objective:\n// Detect activity associated with THM_Nailaolocker Ransomware Log File Created in ProgramData.\n// Severity: SEV_050_CRITICAL\n// Category: DROPPER\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0009 - Collection\n// Technique: T1074.001 - Data Staged: Local Data Staging\n\n// Desabilita diferenciação entre maiúsculas e minúsculas para comparações\nconfig case_sensitive = false  \n\n// Define o dataset de origem como dados brutos do Cortex XDR\n| dataset = xdr_data  \n\n// Filtra apenas eventos de arquivos\n| filter event_type = ENUM.FILE  \n\n// Restringe para eventos de criação de novo arquivo\n| filter event_sub_type = ENUM.FILE_CREATE_NEW  \n\n// Busca criação de arquivos \"lock.log\" dentro do diretório ProgramData\n// Um padrão comum em malwares que usam logs ou arquivos de controle para execução\n| filter action_file_name = \"lock.log\"  \n       and action_file_path contains \"ProgramData\"  \n\n// Restringe a processos não assinados digitalmente, um indicador adicional de suspeita\n| filter actor_process_signature_status = ENUM.UNSIGNED  \n\n// Seleciona os campos relevantes para análise\n| fields agent_hostname,                     // Nome do host onde ocorreu o evento\n         actor_process_image_name,           // Nome do processo responsável pela criação\n         actor_process_image_path,           // Caminho completo do processo\n         actor_process_image_sha256,         // Hash SHA256 do binário do processo\n         action_file_name,                   // Nome do arquivo criado\n         action_file_path                    // Caminho completo do arquivo criado\n",
+    "is_enabled": false,
+    "description": "Detecta a criação do arquivo lock.log no diretório ProgramData, um comportamento atribuído ao ransomware Nailaolocker. O arquivo é usado pelo malware para indicar o status da criptografia e é descartado por um binário não assinado.",
+    "alert_name": "THM_Nailaolocker Ransomware Log File Created in ProgramData",
+    "alert_category": "DROPPER",
+    "alert_type": null,
+    "alert_description": "Foi detectada a criação do arquivo $action_file_name em $action_file_path pelo processo $actor_process_image_name ( $actor_process_image_sha256 ) localizado em $actor_process_image_path no host $agent_hostname . Esse comportamento é atribuído ao ransomware Nailaolocker, que utiliza o arquivo para indicar o status da criptografia, sendo descartado por um binário não assinado.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "REAL_TIME",
+    "search_window": null,
+    "simple_schedule": null,
+    "timezone": null,
+    "crontab": null,
+    "suppression_enabled": false,
+    "suppression_duration": null,
+    "suppression_fields": null,
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0009 - Collection": [
+        "T1074.001 - Data Staged: Local Data Staging"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "AUTO",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

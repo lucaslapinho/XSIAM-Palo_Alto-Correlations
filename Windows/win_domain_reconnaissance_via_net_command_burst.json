@@ -1,0 +1,54 @@
+[
+  {
+    "rule_id": 186,
+    "name": "WIN_Domain Reconnaissance via Net Command Burst",
+    "severity": "SEV_030_MEDIUM",
+    "xql_query": "// ============================================================\n// Rule: WIN_Domain Reconnaissance via Net Command Burst\n// Vendor: Windows\n// Objective:\n// Detect activity associated with WIN_Domain Reconnaissance via Net Command Burst.\n// Severity: SEV_030_MEDIUM\n// Category: EXECUTION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0007 - Discovery\n// Technique: T1087.002 - Account Discovery: Domain Account\n// Technique: T1069.002 - Permission Groups Discovery: Domain Groups\n// Technique: T1018 - Remote System Discovery\n// Technique: T1201 - Password Policy Discovery\n\nconfig case_sensitive = false\n\n| dataset = xdr_data\n\n| filter agent_os_type = ENUM.AGENT_OS_WINDOWS\n| filter event_type = ENUM.PROCESS\n| filter event_sub_type = ENUM.PROCESS_START\n\n| alter\n    process_name_lc = lowercase(action_process_image_name),\n    process_command_line_lc = lowercase(action_process_image_command_line)\n\n| filter process_name_lc in (\"net.exe\", \"net1.exe\")\n\n// Domain-scoped discovery subcommands\n| filter process_command_line_lc ~= \".*\\\\s(user|group|localgroup|computer|session|view|accounts)(\\\\s|$).*\"\n| filter process_command_line_lc ~= \".*(/domain|\\\\sdomain(\\\\s|$)).*\"\n\n// The correlation rule search window supplies the temporal boundary\n| comp\n    count() as command_count,\n    count_distinct(action_process_image_command_line) as distinct_command_count,\n    min(_time) as first_seen,\n    max(_time) as last_seen,\n    values(action_process_image_name) as discovery_processes,\n    values(action_process_image_path) as discovery_paths,\n    values(action_process_image_command_line) as discovery_commands,\n    values(actor_process_image_name) as parent_processes,\n    values(actor_process_command_line) as parent_commands\n  by agent_hostname, agent_id, actor_effective_username\n\n// Avoid alerting on a single administrative query\n| filter command_count >= 3 and distinct_command_count >= 3\n\n| fields\n    first_seen,\n    last_seen,\n    command_count,\n    distinct_command_count,\n    agent_hostname,\n    agent_id,\n    actor_effective_username,\n    discovery_processes,\n    discovery_paths,\n    discovery_commands,\n    parent_processes,\n    parent_commands\n",
+    "is_enabled": false,
+    "description": "Detecta três ou mais comandos distintos de enumeração de domínio executados por net.exe ou net1.exe pelo mesmo usuário e endpoint dentro da janela da correlação. A agregação evita transformar uma consulta administrativa isolada em alerta.",
+    "alert_name": "WIN_Domain Reconnaissance via Net Command Burst",
+    "alert_category": "EXECUTION",
+    "alert_type": null,
+    "alert_description": "Foi identificado um burst de reconhecimento de domínio no endpoint $agent_hostname pelo usuário $actor_effective_username . Foram executados $command_count comandos, com $distinct_command_count linhas distintas. O SOC deve validar se a enumeração fazia parte de atividade administrativa autorizada.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "agent_hostname": "agent_hostname",
+      "action_local_ip": null,
+      "action_remote_ip": null,
+      "action_remote_port": null,
+      "agent_device_domain": null,
+      "actor_effective_username": "actor_effective_username",
+      "actor_process_image_name": null,
+      "actor_process_image_path": null,
+      "actor_process_command_line": null,
+      "actor_process_image_sha256": null
+    },
+    "execution_mode": "SCHEDULED",
+    "search_window": "10 minutes",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "2 hours",
+    "suppression_fields": [
+      "agent_hostname",
+      "actor_effective_username"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0007 - Discovery": [
+        "T1087.002 - Account Discovery: Domain Account",
+        "T1069.002 - Permission Groups Discovery: Domain Groups",
+        "T1018 - Remote System Discovery",
+        "T1201 - Password Policy Discovery"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

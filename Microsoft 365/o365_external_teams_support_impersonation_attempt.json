@@ -1,0 +1,52 @@
+[
+  {
+    "rule_id": 172,
+    "name": "O365_External Teams Support Impersonation Attempt",
+    "severity": "SEV_030_MEDIUM",
+    "xql_query": "// ============================================================\n// Rule: O365_External Teams Support Impersonation Attempt\n// Vendor: Microsoft 365\n// Objective:\n// Detect activity associated with O365_External Teams Support Impersonation Attempt.\n// Severity: SEV_030_MEDIUM\n// Category: RECONNAISSANCE\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0001 - Initial Access\n// Technique: T1566.003 - Phishing: Spearphishing via Service\n\nconfig case_sensitive = false\n\n| dataset = saas_audit_logs\n\n| filter operation_name_orig = \"ChatCreated\"\n\n| alter\n    workload = json_extract_scalar(raw_log, \"$.Workload\"),\n    communication_type = json_extract_scalar(raw_log, \"$.CommunicationType\"),\n    participant_info = json_extract(raw_log, \"$.ParticipantInfo\"),\n    members = json_extract(raw_log, \"$.Members\")\n\n| filter workload contains \"Teams\"\n| filter communication_type = \"OneOnOne\"\n\n| alter\n    HasForeignTenantUsers = json_extract_scalar(participant_info, \"$.HasForeignTenantUsers\"),\n    HasGuestUsers = json_extract_scalar(participant_info, \"$.HasGuestUsers\"),\n    members_l = lowercase(to_string(members)),\n    display_name_0 = json_extract_scalar(members, \"$.0.DisplayName\"),\n    display_name_1 = json_extract_scalar(members, \"$.1.DisplayName\"),\n    user1 = json_extract_scalar(members, \"$.0.UPN\"),\n    user2 = json_extract_scalar(members, \"$.1.UPN\")\n\n// Chat com usuário externo/guest\n| filter HasForeignTenantUsers = \"true\"\n    or HasGuestUsers = \"true\"\n    or identity_name contains \"onmicrosoft.com\"\n\n// Termos usados para impersonação de suporte\n| filter members_l ~= \".(help ?desk|service ?desk|it support|suporte|suporte ti|central de atendimento|security team|admin|administrator).\"\n\n| fields\n    _time,\n    caller_ip,\n    identity_name,\n    operation_name_orig,\n    workload,\n    communication_type,\n    HasForeignTenantUsers,\n    HasGuestUsers,\n    display_name_0,\n    display_name_1,\n    user1,\n    user2,\n    raw_log\n",
+    "is_enabled": false,
+    "description": "Detecta a criação de conversas individuais no Microsoft Teams envolvendo usuários externos, convidados ou pertencentes a tenants externos, quando os participantes apresentam nomes ou identificadores associados a funções de suporte, administração ou segurança, como Help Desk, Service Desk, IT Support, Suporte TI, Security Team ou Administrator. A detecção tem como objetivo identificar possíveis tentativas de impersonação e engenharia social utilizando o Microsoft Teams como canal de comunicação.",
+    "alert_name": "O365_External Teams Support Impersonation Attempt",
+    "alert_category": "RECONNAISSANCE",
+    "alert_type": null,
+    "alert_description": "Foi identificada a criação de uma conversa individual no Microsoft Teams envolvendo um usuário externo ou convidado com características associadas à impersonação de equipes de suporte ou administração. A comunicação envolveu os usuários $display_name_0  ( $user1 ) e $display_name_1 ( $user2 ), com origem no endereço IP $caller_ip . O evento deve ser validado pelo SOC para identificar possível tentativa de engenharia social, phishing ou obtenção indevida de credenciais por meio do Microsoft Teams.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "agent_hostname": null,
+      "action_local_ip": null,
+      "action_remote_ip": null,
+      "action_remote_port": null,
+      "agent_device_domain": null,
+      "actor_effective_username": null,
+      "actor_process_image_name": null,
+      "actor_process_image_path": null,
+      "actor_process_command_line": null,
+      "actor_process_image_sha256": null
+    },
+    "execution_mode": "REAL_TIME",
+    "search_window": null,
+    "simple_schedule": null,
+    "timezone": null,
+    "crontab": null,
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "identity_name",
+      "user1",
+      "user2"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0001 - Initial Access": [
+        "T1566.003 - Phishing: Spearphishing via Service"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

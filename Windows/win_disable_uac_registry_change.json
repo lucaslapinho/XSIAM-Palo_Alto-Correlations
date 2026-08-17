@@ -1,0 +1,39 @@
+[
+  {
+    "rule_id": 70,
+    "name": "WIN_Disable UAC Registry Change",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: WIN_Disable UAC Registry Change\n// Vendor: Windows\n// Objective:\n// Detect activity associated with WIN_Disable UAC Registry Change.\n// Severity: SEV_040_HIGH\n// Category: TAMPERING\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0005 - Defense Evasion\n// Technique: T1562.001 - Impair Defenses: Disable or Modify Tools\n\n// Configuração inicial: define que as comparações de strings não diferenciam maiúsculas/minúsculas\nconfig case_sensitive = false  \n\n// Fonte de dados: eventos coletados pelo Cortex XDR\n| dataset = xdr_data  \n\n// Filtro para selecionar apenas eventos de modificação de chave de registro\n// - event_type = REGISTRY → evento de registro do Windows\n// - event_sub_type = REGISTRY_SET_VALUE → operação de alteração de valor no registro\n| filter event_type = ENUM.REGISTRY and event_sub_type = ENUM.REGISTRY_SET_VALUE  \n\n// Seleção dos campos relevantes para análise de alteração de registro\n| fields _time,                         // Data e hora do evento\n         agent_hostname,                // Host onde ocorreu a alteração\n         actor_process_image_name,      // Processo que realizou a modificação\n         action_registry_key_name,      // Caminho da chave de registro alterada\n         action_registry_value_name,    // Nome do valor dentro da chave\n         action_registry_data           // Novo dado definido no valor\n\n// Filtro adicional: identifica modificações na chave de registro\n// HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\n// - Valor \"EnableLUA\" → controla o UAC (User Account Control)\n// - Definido como \"0\" → desabilita o UAC, o que reduz a proteção do sistema\n| filter lowercase(action_registry_key_name) = \"hklm\\\\software\\\\microsoft\\\\windows\\\\currentversion\\\\policies\\\\system\"\n        and lowercase(action_registry_value_name) = \"enablelua\"\n        and action_registry_data = \"0\"\n",
+    "is_enabled": false,
+    "description": "Esta regra monitora alterações no registro do Windows que desabilitam o User Account Control (UAC). O alerta é disparado quando o valor EnableLUA da chave HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System é modificado para 0, indicando que o UAC foi desativado. Essa ação reduz o nível de proteção do sistema operacional e pode ser explorada por atacantes para facilitar a execução de atividades maliciosas com privilégios elevados.",
+    "alert_name": "WIN_Disable UAC Registry Change",
+    "alert_category": "TAMPERING",
+    "alert_type": null,
+    "alert_description": "Foi detectada a modificação da chave de registro EnableLUA no host $agent_hostname , realizada pelo processo $actor_process_image_name , definindo o valor como 0. Essa ação desativa o User Account Control (UAC) do Windows e pode indicar tentativa de reduzir mecanismos de proteção do sistema para facilitar atividades maliciosas.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "REAL_TIME",
+    "search_window": null,
+    "simple_schedule": null,
+    "timezone": null,
+    "crontab": null,
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "agent_hostname"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0005 - Defense Evasion": [
+        "T1562.001 - Impair Defenses: Disable or Modify Tools"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

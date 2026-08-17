@@ -1,0 +1,42 @@
+[
+  {
+    "rule_id": 26,
+    "name": "BYT_User Removed from Admin Group",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: BYT_User Removed from Admin Group\n// Vendor: BeyondTrust\n// Objective:\n// Detect activity associated with BYT_User Removed from Admin Group.\n// Severity: SEV_040_HIGH\n// Category: CREDENTIAL_ACCESS\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0040 - Impact\n// Technique: T1531 - Account Access Removal\n\n// Fonte de dados: logs do BeyondTrust Password Safe\ndataset = beyondtrust_passwordsafe_raw  \n\n// Filtra apenas eventos que contenham o termo \"weslley.teste\" no log bruto\n// e que sejam da categoria \"Configure\" com evento do tipo \"Delete\"\n| filter _raw_log contains \"Administrators\"  \n       and category = \"Configure\"   \n       and event_name = \"Delete\"  \n\n// Seleciona os campos relevantes para análise\n| fields user,           // Usuário que executou a ação\n         category,       // Categoria do evento (ex.: Configure)\n         user_name,      // Nome do usuário associado\n         event_name,     // Tipo de evento (ex.: Delete)\n         group_name,     // Nome do grupo afetado\n         _raw_log        // Log bruto para contexto completo\n",
+    "is_enabled": false,
+    "description": "Este alerta indica que um usuário foi removido do grupo de administradores da máquina ou do domínio. A remoção de privilégios administrativos pode ser parte de um processo legítimo de gerenciamento de acesso, mas também pode ocorrer como tentativa de ocultar rastros ou limitar a atuação de outros administradores. É importante validar se a ação foi autorizada e compatível com as políticas de segurança da organização.",
+    "alert_name": "BYT_User Removed from Admin Group",
+    "alert_category": "CREDENTIAL_ACCESS",
+    "alert_type": null,
+    "alert_description": "Este alerta indica que um usuário foi removido do grupo de administradores da máquina ou do domínio. A remoção de privilégios administrativos pode ser parte de um processo legítimo de gerenciamento de acesso, mas também pode ocorrer como tentativa de ocultar rastros ou limitar a atuação de outros administradores. É importante validar se a ação foi autorizada e compatível com as políticas de segurança da organização.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "agent_hostname": "group_name",
+      "agent_device_domain": "category",
+      "actor_effective_username": "user_name",
+      "actor_process_image_path": "event_name"
+    },
+    "execution_mode": "REAL_TIME",
+    "search_window": null,
+    "simple_schedule": null,
+    "timezone": null,
+    "crontab": null,
+    "suppression_enabled": false,
+    "suppression_duration": null,
+    "suppression_fields": null,
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0040 - Impact": [
+        "T1531 - Account Access Removal"
+      ]
+    },
+    "investigation_query_link": "dataset=beyondtrust_passwordsafe_raw\r\n| filter _raw_log contains \"Administrators\" and category = \"Configure\" and event_name = \"Add\"\r\n| fields user, category, user_name, event_name, group_name, _raw_log",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

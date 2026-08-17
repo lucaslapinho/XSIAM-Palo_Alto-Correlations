@@ -1,0 +1,33 @@
+[
+  {
+    "rule_id": 22,
+    "name": "REPORT-FTG_Successful RDP",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: REPORT-FTG_Successful RDP\n// Vendor: Fortigate\n// Objective:\n// Detect activity associated with REPORT-FTG_Successful RDP.\n// Severity: SEV_040_HIGH\n// Category: OTHER\n// ============================================================\n\ndataset = fortinet_fortigate_raw\n| filter app = \"RDP\"\n| filter act = \"accept\"\n| alter \n    host = shost,\n    timestamp = _time,\n    src_ip = src,\n    dst_ip = dst,\n    action_taken = act,\n    log_message = msg,\n    device_name = _reporting_device_name\n| fields timestamp, device_name, src_ip, dst_ip, action_taken, log_message\n//| filter not src_location contains \"SouthAmerica.Brazil\"\n//| fields _time, src_ip, dst_ip, app, action, src_location, device_name\n",
+    "is_enabled": false,
+    "description": "Triggers when a successful RDP connection is detected from a geographic location outside of Brazil. The traffic must be identified as Remote-to-Local or Remote-to-Remote and accepted by a Fortinet FortiGate Security Gateway.",
+    "alert_name": "FGT_Successful RDP",
+    "alert_category": "OTHER",
+    "alert_type": null,
+    "alert_description": "Triggers when a successful RDP connection is detected from a geographic location outside of Brazil. The traffic must be identified as Remote-to-Local or Remote-to-Remote and accepted by a Fortinet FortiGate Security Gateway.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "SCHEDULED",
+    "search_window": "10 minutes",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": false,
+    "suppression_duration": null,
+    "suppression_fields": null,
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {},
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

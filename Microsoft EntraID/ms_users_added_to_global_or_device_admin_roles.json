@@ -1,0 +1,37 @@
+[
+  {
+    "rule_id": 6,
+    "name": "MS_Users Added to Global or Device Admin Roles",
+    "severity": "SEV_030_MEDIUM",
+    "xql_query": "// ============================================================\n// Rule: MS_Users Added to Global or Device Admin Roles\n// Vendor: Microsoft EntraID\n// Objective:\n// Detect activity associated with MS_Users Added to Global or Device Admin Roles.\n// Severity: SEV_030_MEDIUM\n// Category: PRIVILEGE_ESCALATION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0003 - Persistence\n// Technique: T1098.003 - Account Manipulation: Add Office 365 Global Administrator Role\n\n// Configuração inicial: comparações não diferenciam maiúsculas/minúsculas\n// Objetivo: evitar perda de eventos por variações de caixa em strings (ex.: operationName)\nconfig case_sensitive = false\n\n// Fonte de dados: logs brutos do Microsoft Azure / Entra ID\n// O dataset 'msft_azure_raw' contém eventos de auditoria e atividades administrativas\n| dataset = msft_azure_raw\n\n// Extração/normalização de campos do objeto 'properties' (JSON)\n// - properties_category: categoria do evento (ex.: RoleManagement)\n// - properties_operationName: nome/descrição da operação executada\n// - properties_targetResources: conteúdo com os recursos/entidades alvo (pode conter IDs de roles/objetos)\n| alter\n    properties_category        = json_extract_scalar(properties, \"$.category\"),\n    properties_operationName   = json_extract_scalar(properties, \"$.operationName\"),\n    properties_targetResources = json_extract_scalar(properties, \"$.targetResources\")\n\n// Filtro: monitora adição de membro a role (RoleManagement)\n// Condições:\n// 1) category = RoleManagement\n// 2) operationName contém \"Add\" e \"member to role\" (adição de membro a role)\n// 3) targetResources contém IDs específicos (roles/objetos monitorados)\n| filter properties_category = \"RoleManagement\"\n| filter (properties_operationName contains \"Add\" and properties_operationName contains \"member to role\")\n| filter (\n    properties_targetResources contains \"7698a772-787b-4ac8-901f-60d6b08affd2\" or\n    properties_targetResources contains \"62e90394-69f5-4237-9190-012177145e10\"\n)\n",
+    "is_enabled": false,
+    "description": "Um usuário foi adicionado a uma função altamente privilegiada no Azure AD, como Global Administrator ou User Access Administrator. Essa ação pode indicar tentativa de escalonamento de privilégios ou uso indevido de permissões administrativas.",
+    "alert_name": "MS_Users Added to Global or Device Admin Roles",
+    "alert_category": "PRIVILEGE_ESCALATION",
+    "alert_type": null,
+    "alert_description": "Um usuário foi adicionado a uma função altamente privilegiada no Azure AD, como Global Administrator ou User Access Administrator. Essa ação pode indicar tentativa de escalonamento de privilégios ou uso indevido de permissões administrativas.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "REAL_TIME",
+    "search_window": null,
+    "simple_schedule": null,
+    "timezone": null,
+    "crontab": null,
+    "suppression_enabled": false,
+    "suppression_duration": null,
+    "suppression_fields": null,
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0003 - Persistence": [
+        "T1098.003 - Account Manipulation: Add Office 365 Global Administrator Role"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

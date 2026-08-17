@@ -1,0 +1,45 @@
+[
+  {
+    "rule_id": 15,
+    "name": "FTG_Antivirus Suspicious File Download",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: FTG_Antivirus Suspicious File Download\n// Vendor: Fortigate\n// Objective:\n// Detect activity associated with FTG_Antivirus Suspicious File Download.\n// Severity: SEV_040_HIGH\n// Category: EXECUTION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0002 - Execution\n// Technique: T1204 - User Execution\n// Technique: T1204.002 - User Execution: Malicious File\n// Tactic: TA0001 - Initial Access\n\n// Fonte de dados: logs brutos do Fortinet FortiGate\ndataset = fortinet_fortigate_raw  \n\n// Filtro para eventos classificados como \"utm:virus\"\n// Somente aqueles com tipo \"infected\" e que não foram bloqueados\n| filter cat = \"utm:virus\"\n       and FTNTFGTeventtype = \"infected\"\n       and act != \"blocked\"  \n\n// Criação de campos derivados para facilitar a leitura dos resultados\n| alter \n    timestamp = _time,                  // Momento em que o evento ocorreu\n    src_ip = src,                       // Endereço IP de origem\n    dst_ip = dst,                       // Endereço IP de destino\n    action_taken = act,                 // Ação tomada pelo firewall\n    file_name = fname,                  // Nome do arquivo identificado\n    request_origin = request,           // Origem da requisição\n    device_name = _reporting_device_name, // Nome do dispositivo FortiGate que reportou o evento\n    arquivo = fname                     // Alias adicional para o nome do arquivo\n\n// Seleção dos campos principais para análise\n| fields timestamp, device_name, arquivo, src_ip, dst_ip, action_taken, file_name, request_origin\n",
+    "is_enabled": false,
+    "description": "Um download de arquivo suspeito foi detectado pelo mecanismo antivírus. Isso pode indicar uma tentativa de entrega de malware ou software potencialmente indesejado ao endpoint. Recomenda-se uma investigação adicional para identificar a natureza e a origem do arquivo.",
+    "alert_name": "FTG_Antivirus Suspicious File Download",
+    "alert_category": "EXECUTION",
+    "alert_type": null,
+    "alert_description": "Arquivo suspeito ( $arquivo / $file_name ) detectado no dispositivo $device_name , originado de $src_ip e destinado a $dst_ip . Ação registrada: $action_taken .",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "agent_hostname": "device_name",
+      "action_local_ip": "src_ip",
+      "action_remote_ip": "request_origin",
+      "actor_effective_username": "dst_ip",
+      "actor_process_image_path": "file_name"
+    },
+    "execution_mode": "REAL_TIME",
+    "search_window": null,
+    "simple_schedule": null,
+    "timezone": null,
+    "crontab": null,
+    "suppression_enabled": false,
+    "suppression_duration": null,
+    "suppression_fields": null,
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0002 - Execution": [
+        "T1204 - User Execution",
+        "T1204.002 - User Execution: Malicious File"
+      ],
+      "TA0001 - Initial Access": []
+    },
+    "investigation_query_link": "dataset = fortinet_fortigate_raw\r\n| filter cat = \"utm:virus\"\r\n  and FTNTFGTeventtype = \"infected\"\r\n  and act != \"blocked\"\r\n| alter \r\n    timestamp = _time,\r\n    src_ip = src,\r\n    dst_ip = dst,\r\n    action_taken = act,\r\n    file_name = fname,\r\n    request_origin = request,\r\n    device_name = _reporting_device_name\r\n| fields timestamp, device_name, src_ip, dst_ip, action_taken, file_name, request_origin",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

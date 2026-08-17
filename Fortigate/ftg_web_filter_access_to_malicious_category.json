@@ -1,0 +1,47 @@
+[
+  {
+    "rule_id": 29,
+    "name": "FTG_Web Filter: Access to Malicious Category",
+    "severity": "SEV_030_MEDIUM",
+    "xql_query": "// ============================================================\n// Rule: FTG_Web Filter: Access to Malicious Category\n// Vendor: Fortigate\n// Objective:\n// Detect activity associated with FTG_Web Filter: Access to Malicious Category.\n// Severity: SEV_030_MEDIUM\n// Category: OTHER\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0010 - Exfiltration\n// Tactic: TA0001 - Initial Access\n// Technique: T1192 - Spearphishing Link\n// Technique: T1566 - Phishing\n// Tactic: TA0005 - Defense Evasion\n\ndataset = fortinet_fortigate_raw\n| filter cat = \"utm:webfilter\"\n  and act != \"blocked\"\n  and requestContext in (\n      \"Malicious Websites\",\n      \"Phishing\",\n      \"Spam URLs\",\n      \"Dynamic DNS\",\n      \"Peer-to-peer File Sharing\",\n      \"Crypto Mining\"\n  )\n| alter\n    timestamp = _time,\n    src_ip = src,\n    dst_ip = dst,\n    category = requestContext,\n    application = app,\n    action_taken = act,\n    log_message = msg,\n    request_origin = dhost,\n    user = duser,\n    device_name = _reporting_device_name\n| fields timestamp, device_name, src_ip, dst_ip, category, application, action_taken, log_message, request_origin, user, _raw_log\n",
+    "is_enabled": false,
+    "description": "O filtro web do FortiGate detectou o acesso de um usuário a uma URL classificada como maliciosa, como phishing, spam, DNS dinâmico, compartilhamento de arquivos P2P ou mineração de criptomoedas. Embora a solicitação não tenha sido bloqueada, esse comportamento pode indicar exposição a ameaças ou possível exfiltração de dados. Recomenda-se investigar o usuário, o destino e o contexto do acesso para avaliar riscos à segurança.",
+    "alert_name": "FTG_Web Filter: Access to Malicious Category",
+    "alert_category": "OTHER",
+    "alert_type": null,
+    "alert_description": "O filtro web do FortiGate detectou o acesso de um usuário a uma URL classificada como maliciosa, como phishing, spam, DNS dinâmico, compartilhamento de arquivos P2P ou mineração de criptomoedas. Embora a solicitação não tenha sido bloqueada, esse comportamento pode indicar exposição a ameaças ou possível exfiltração de dados. Recomenda-se investigar o usuário, o destino e o contexto do acesso para avaliar riscos à segurança.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "agent_hostname": "user",
+      "action_local_ip": "request_origin",
+      "agent_device_domain": "device_name",
+      "actor_effective_username": "request_origin",
+      "actor_process_image_name": "action_taken",
+      "actor_process_image_path": "src_ip"
+    },
+    "execution_mode": "SCHEDULED",
+    "search_window": "10 minutes",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": false,
+    "suppression_duration": null,
+    "suppression_fields": null,
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0010 - Exfiltration": [],
+      "TA0001 - Initial Access": [
+        "T1192 - Spearphishing Link",
+        "T1566 - Phishing"
+      ],
+      "TA0005 - Defense Evasion": []
+    },
+    "investigation_query_link": "dataset = fortinet_fortigate_raw\r\n| filter cat = \"utm:webfilter\"\r\n  and act != \"blocked\"\r\n  and (\r\n    requestContext = \"Malicious Websites\" or\r\n    requestContext = \"Phishing\" or\r\n    requestContext = \"Spam URLs\" or\r\n    requestContext = \"Dynamic DNS\" or\r\n    requestContext = \"Peer-to-peer File Sharing\" or\r\n    requestContext = \"Crypto Mining\"\r\n  )\r\n| alter\r\n    timestamp = _time,\r\n    src_ip = src,\r\n    dst_ip = dst,\r\n\r\n    category = requestContext,\r\n    action_taken = act,\r\n    application = app,\r\n    log_message = msg,\r\n    request_origin = dhost,\r\n    user = duser,\r\n    device_name = _reporting_device_name\r\n| fields timestamp, device_name, src_ip, dst_ip, category, application, action_taken, log_message, request_origin, user",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

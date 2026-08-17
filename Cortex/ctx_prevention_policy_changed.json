@@ -1,0 +1,42 @@
+[
+  {
+    "rule_id": 36,
+    "name": "CTX_Prevention Policy Changed",
+    "severity": "SEV_050_CRITICAL",
+    "xql_query": "// ============================================================\n// Rule: CTX_Prevention Policy Changed\n// Vendor: Cortex\n// Objective:\n// Detect activity associated with CTX_Prevention Policy Changed.\n// Severity: SEV_050_CRITICAL\n// Category: TAMPERING\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0005 - Defense Evasion\n// Technique: T1562 - Impair Defenses\n// Technique: T1562.001 - Impair Defenses: Disable or Modify Tools\n\n// Configuração inicial: comparações não diferenciam maiúsculas/minúsculas\n// Objetivo: evitar perda de eventos por variações de caixa na descrição\nconfig case_sensitive = false\n\n// Fonte de dados: Management Audit Logs do Cortex\n// O dataset 'management_auditing' registra ações administrativas realizadas no console,\n// incluindo edições de políticas e regras de segurança por sistema operacional.\n| dataset = management_auditing\n\n// Filtro: monitora edição de regras de política (policy rules)\n// - subtype = \"Edit\" indica modificação de um objeto existente\n// - description contém o texto padrão que identifica regra de política para Windows/Linux/macOS\n| filter subtype = \"Edit\"\n| filter (\n    description contains \"Windows policy rule\" or\n    description contains \"Linux policy rule\" or\n    description contains \"MacOS policy rule\"\n)\n\n// Seleção dos campos relevantes para auditoria e notificação do alerta\n| fields\n    description, // Detalhe da regra editada (geralmente inclui nome/objeto e contexto)\n    user_name,   // Usuário administrador que realizou a edição\n    subtype      // Subtipo do evento (Edit)\n",
+    "is_enabled": false,
+    "description": "Foi detectada a alteração de uma política de prevenção no Cortex XDR. A alteração de políticas de segurança pode alterar o comportamento de proteção dos endpoints, afetando regras de bloqueio, monitoramento ou resposta automática.",
+    "alert_name": "CTX_Prevention Policy Changed",
+    "alert_category": "TAMPERING",
+    "alert_type": null,
+    "alert_description": "Foi detectada a alteração de uma política de prevenção pelo usuário $user_name . $description",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "agent_hostname": "description",
+      "action_remote_ip": "subtype",
+      "actor_process_image_path": "user_name"
+    },
+    "execution_mode": "SCHEDULED",
+    "search_window": "10 minutes",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": false,
+    "suppression_duration": null,
+    "suppression_fields": null,
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0005 - Defense Evasion": [
+        "T1562 - Impair Defenses",
+        "T1562.001 - Impair Defenses: Disable or Modify Tools"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

@@ -1,0 +1,39 @@
+[
+  {
+    "rule_id": 141,
+    "name": "LNX_Unexpected Process Running su for Privilege Escalation",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: LNX_Unexpected Process Running su for Privilege Escalation\n// Vendor: Linux\n// Objective:\n// Detect activity associated with LNX_Unexpected Process Running su for Privilege Escalation.\n// Severity: SEV_040_HIGH\n// Category: PRIVILEGE_ESCALATION\n// ============================================================\n\ndataset = xdr_data\n\n// Seleciona apenas os campos relevantes para investigação e contexto do evento\n| fields \n    _time,\n    agent_hostname,\n    agent_os_type,\n    event_type,\n    event_sub_type,\n    actor_effective_username,\n    actor_effective_user_sid,\n    actor_process_image_path,\n    actor_process_image_name,\n    actor_process_command_line,\n    actor_process_image_sha256,\n    action_process_image_name,\n    action_process_image_command_line,\n    action_process_user_sid\n\n// Filtra eventos de criação/início de processo em hosts Linux\n| filter \n    event_type = ENUM.PROCESS\n    and event_sub_type = ENUM.PROCESS_START\n    and agent_os_type = ENUM.AGENT_OS_LINUX\n\n    // Exclui execuções onde o usuário efetivo é root\n    // UID 0 representa o usuário root em sistemas Linux\n    and actor_effective_user_sid != \"0\"\n\n    // Identifica tentativas de execução do comando \"su\"\n    // O foco é detectar quando um processo não esperado tenta iniciar troca de usuário\n    and (\n        // Caso direto: processo \"su\" sendo executado com comando \"su\" ou \"/usr/bin/su\"\n        (\n            action_process_image_name = \"su\"\n            and action_process_image_command_line in (\"su\", \"/usr/bin/su\")\n        )\n\n        or\n\n        // Caso indireto: shell executando \"su\" via parâmetro \"-c\"\n        // Exemplo: bash -c su ou sh -c su\n        (\n            action_process_image_name in (\"bash\", \"sh\")\n            and action_process_image_command_line ~= \"-c(?:\\\\s--)?\\\\ssu$\"\n        )\n    )\n\n    // Exclui processos pais comuns e esperados para execução de comandos/shells\n    // A ideia é destacar binários incomuns tentando acionar \"su\"\n    and actor_process_image_name not in (\n        \"bash\",\n        \"sh\",\n        \"zsh\",\n        \"ksh\",\n        \"sudo\",\n        \"su\"\n    )\n\n// Consolida os eventos por host, processo pai e hash do processo pai\n// Isso reduz ruído e facilita análise por comportamento recorrente\n| comp \n    earliest(_time) as first_seen,\n    latest(_time) as last_seen,\n    count() as execution_count,\n    values(actor_effective_username) as actor_usernames,\n    values(actor_process_image_path) as actor_image_paths,\n    values(actor_process_command_line) as actor_cmd_lines,\n    values(action_process_image_command_line) as action_cmd_lines,\n    values(action_process_user_sid) as action_UIDs\nby \n    agent_hostname,\n    actor_process_image_name,\n    actor_process_image_sha256\n",
+    "is_enabled": false,
+    "description": "Detecta processos em hosts Linux que não estão sendo executados como root e que iniciam o comando su como processo filho, indicando uma possível tentativa de elevação de privilégio para permissões administrativas. Esse comportamento pode estar associado à exploração da vulnerabilidade CopyFail, em que processos inesperados tentam acionar mecanismos locais de troca de usuário para obter privilégios elevados.",
+    "alert_name": "LNX_Unexpected Process Running su for Privilege Escalation",
+    "alert_category": "PRIVILEGE_ESCALATION",
+    "alert_type": null,
+    "alert_description": "Detectada uma possível tentativa de elevação de privilégio no host Linux $agent_hostname, onde o processo $actor_process_image_name, executado pelo(s) usuário(s) $actor_usernames, iniciou o comando su de forma inesperada. Esse comportamento pode estar associado à exploração da vulnerabilidade CopyFail ou abuso de mecanismo local de troca de usuário.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "processpaths": "actor_image_paths",
+      "agent_hostname": "agent_hostname",
+      "parentprocessname": "actor_process_image_name"
+    },
+    "execution_mode": "SCHEDULED",
+    "search_window": "1 hours",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "actor_usernames"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {},
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

@@ -1,0 +1,39 @@
+[
+  {
+    "rule_id": 21,
+    "name": "FTG_High Memory Usage",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: FTG_High Memory Usage\n// Vendor: Fortigate\n// Objective:\n// Detect activity associated with FTG_High Memory Usage.\n// Severity: SEV_040_HIGH\n// Category: OTHER\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0040 - Impact\n// Technique: T1498 - Network Denial of Service\n\n// Fonte de dados: logs brutos do Fortinet FortiGate\ndataset = fortinet_fortigate_raw  \n\n// Filtra apenas mensagens que contenham a palavra \"memory\"\n| filter msg contains \"memory\"  \n\n// Converte o valor de utilização de memória (FTNTFGTmem) para inteiro\n| alter memoria = to_integer(FTNTFGTmem)  \n\n// Calcula a média de uso de memória por dispositivo reportado\n| comp avg(memoria) as memoria by _reporting_device_name  \n\n// Mantém apenas os casos em que a média de memória ultrapassa 74%\n| filter memoria > 74\n",
+    "is_enabled": false,
+    "description": "O dispositivo FortiGate relatou uma alta utilização de memória, o que pode levar à degradação do desempenho, ativação do Modo de Conservação (Conserve Mode) ou interrupção dos serviços de segurança. Este alerta ajuda a identificar possíveis condições de exaustão de recursos que exigem atenção administrativa.",
+    "alert_name": "FTG_High Memory Usage",
+    "alert_category": "OTHER",
+    "alert_type": null,
+    "alert_description": "O dispositivo $_reporting_device_name apresentou alta utilização de memória ($memoria) , o que pode afetar o desempenho ou ativar o modo de conservação.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "SCHEDULED",
+    "search_window": "10 minutes",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "4 hours",
+    "suppression_fields": [
+      "_reporting_device_name"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0040 - Impact": [
+        "T1498 - Network Denial of Service"
+      ]
+    },
+    "investigation_query_link": "dataset = fortinet_fortigate_raw\r\n| filter msg contains \"memory\"\r\n  and msg contains \"high\"\r\n| alter\r\n    timestamp = _time,\r\n    src_ip = src,\r\n    dst_ip = dst,\r\n    log_message = msg,\r\n    action_taken = act,\r\n    application = app,\r\n    request_origin = dhost,\r\n    user = duser,\r\n    device_name = _reporting_device_name\r\n| fields timestamp, device_name, src_ip, dst_ip, log_message, application, action_taken, request_origin, user",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

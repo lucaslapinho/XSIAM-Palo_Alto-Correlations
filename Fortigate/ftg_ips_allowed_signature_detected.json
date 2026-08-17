@@ -1,0 +1,39 @@
+[
+  {
+    "rule_id": 16,
+    "name": "FTG_IPS Allowed Signature Detected",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: FTG_IPS Allowed Signature Detected\n// Vendor: Fortigate\n// Objective:\n// Detect activity associated with FTG_IPS Allowed Signature Detected.\n// Severity: SEV_040_HIGH\n// Category: OTHER\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0002 - Execution\n// Technique: T1204 - User Execution\n// Technique: T1204.002 - User Execution: Malicious File\n// Tactic: TA0001 - Initial Access\n\n// Fonte de dados: logs brutos do Fortinet FortiGate\ndataset = fortinet_fortigate_raw  \n\n// Filtra apenas mensagens que contenham a palavra \"memory\"\n| filter msg contains \"memory\"  \n\n// Converte o valor de utilização de memória (FTNTFGTmem) para inteiro\n| alter memoria = to_integer(FTNTFGTmem)  \n\n// Calcula a média de uso de memória por dispositivo reportado\n| comp avg(memoria) as memoria by _reporting_device_name  \n\n// Mantém apenas os casos onde a média de memória ultrapassa 74%\n| filter memoria > 74\n",
+    "is_enabled": false,
+    "description": "O sistema de prevenção contra intrusões (IPS) do FortiGate detectou uma assinatura correspondente a tráfego potencialmente malicioso, mas a ação configurada não interrompeu nem redefiniu a conexão. Isso pode indicar que uma atividade suspeita ou maliciosa foi permitida na rede e deve ser investigada para avaliar o risco ou possível exposição.",
+    "alert_name": "FTG_IPS Allowed Signature Detected",
+    "alert_category": "OTHER",
+    "alert_type": null,
+    "alert_description": "O dispositivo $device_name detectou uma ameaça com severidade $severity associada à assinatura $signature . O usuário $user ( $duser ) originou a conexão do IP $src_ip para $dst_ip . A ação tomada foi $action_taken . Recomenda-se investigar para avaliar riscos ou exposição.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "SCHEDULED",
+    "search_window": "10 minutes",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": false,
+    "suppression_duration": null,
+    "suppression_fields": null,
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0002 - Execution": [
+        "T1204 - User Execution",
+        "T1204.002 - User Execution: Malicious File"
+      ],
+      "TA0001 - Initial Access": []
+    },
+    "investigation_query_link": "dataset = fortinet_fortigate_raw\r\n| filter cat = \"utm:ips\"\r\n  and act != \"reset\"\r\n  and act != \"dropped\"\r\n| alter\r\n    timestamp = _time,\r\n    src_ip = src,\r\n    dst_ip = dst,\r\n    category = cat,\r\n    signature = msg,\r\n    application = app,\r\n    action_taken = act,\r\n    request_origin = dhost,\r\n    user = duser,\r\n    device_name = _reporting_device_name,\r\n    severity = FTNTFGTseverity\r\n| fields timestamp, device_name, severity, duser, src_ip, dst_ip, category, signature, application, action_taken, request_origin, user\r\n\r\n// Exceptions\r\n\r\n| filter severity = \"high\" or severity  = \"critical\"\r\n| filter signature != \"name_server: DNS.PTR.Records.Scan\" and duser != \"R0007651\"",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

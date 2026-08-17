@@ -1,0 +1,43 @@
+[
+  {
+    "rule_id": 13,
+    "name": "MS_EntraID Add User Outside Detected",
+    "severity": "SEV_030_MEDIUM",
+    "xql_query": "// ============================================================\n// Rule: MS_EntraID Add User Outside Detected\n// Vendor: Microsoft EntraID\n// Objective:\n// Detect activity associated with MS_EntraID Add User Outside Detected.\n// Severity: SEV_030_MEDIUM\n// Category: PRIVILEGE_ESCALATION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0003 - Persistence\n// Technique: T1098 - Account Manipulation\n// Technique: T1136.003 - Create Account: Cloud Account\n// Technique: T1556 - Modify Authentication Process\n\ndataset = msft_azure_raw\n| alter\n    timestamp = _time,\n    operationName = properties -> operationName,\n    userPrincipalName = properties -> userPrincipalName,\n    userDisplayName = properties -> userDisplayName,\n    userId = properties -> userId,\n    ipAddress = properties -> ipAddress,\n    city = properties -> location.city,\n    state = properties -> location.state,\n    countryOrRegion = properties -> location.countryOrRegion,\n    appDisplayName = properties -> appDisplayName,\n    resultType = properties -> resultType,\n    resultDescription = properties -> resultDescription,\n    userAgent = properties -> userAgent,\n    category = properties -> category\n\n// Detect addition of user to role outside of PIM\n| filter category = \"RoleManagement\"\n    and operationName = \"Add member to role outside of PIM (permanent)\"\n    and resultType = \"0\"\n\n| fields timestamp, operationName, userPrincipalName, userDisplayName, userId, ipAddress, city, state, countryOrRegion, userAgent, appDisplayName, resultType, resultDescription\n",
+    "is_enabled": false,
+    "description": "Detection of a user being added to a role outside of PIM (Privileged Identity Management) in Azure AD. This may indicate misuse of privileges or unauthorized role assignment.",
+    "alert_name": "MS_EntraID Add User Outside PIM Detected",
+    "alert_category": "PRIVILEGE_ESCALATION",
+    "alert_type": null,
+    "alert_description": "Detection of a user being added to a role outside of PIM (Privileged Identity Management) in Azure AD. This may indicate misuse of privileges or unauthorized role assignment.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "agent_hostname": "appDisplayName",
+      "action_remote_ip": "ipAddress",
+      "actor_effective_username": "userPrincipalName"
+    },
+    "execution_mode": "REAL_TIME",
+    "search_window": null,
+    "simple_schedule": null,
+    "timezone": null,
+    "crontab": null,
+    "suppression_enabled": false,
+    "suppression_duration": null,
+    "suppression_fields": null,
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0003 - Persistence": [
+        "T1098 - Account Manipulation",
+        "T1136.003 - Create Account: Cloud Account",
+        "T1556 - Modify Authentication Process"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

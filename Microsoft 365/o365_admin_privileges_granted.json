@@ -1,0 +1,48 @@
+[
+  {
+    "rule_id": 77,
+    "name": "O365_Admin Privileges Granted",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: O365_Admin Privileges Granted\n// Vendor: Microsoft 365\n// Objective:\n// Detect activity associated with O365_Admin Privileges Granted.\n// Severity: SEV_040_HIGH\n// Category: PRIVILEGE_ESCALATION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0003 - Persistence\n// Technique: T1098 - Account Manipulation\n// Technique: T1098.001 - Account Manipulation: Additional Cloud Credentials\n// Tactic: TA0004 - Privilege Escalation\n// Technique: T1098 - Account Manipulation\n// Technique: T1098.003 - Account Manipulation: Additional Cloud Roles\n\n// Fonte de dados: logs de auditoria de nuvem\ndataset = cloud_audit_logs  \n\n// Filtro para considerar apenas eventos do provedor Microsoft Azure\n| filter cloud_provider = \"Azure\"  \n\n// Filtro para operações relacionadas à adição de membros em funções (roles)\n// Exemplo: quando um usuário recebe permissão administrativa ou outra função privilegiada\n| filter operation_name_orig = \"Add member to role\"  \n\n// Filtro adicional para restringir a eventos que envolvem funções de administrador\n// O campo raw_log é inspecionado para identificar ocorrências contendo o termo \"Administrator\"\n| filter raw_log ~= \"Administrator\"  \n\n// Exclusão de eventos legítimos provenientes da plataforma de segurança Check Point\n// Essa exclusão evita falsos positivos em integrações automatizadas conhecidas\n| filter IDENTITY_INVOKED_BY_NAME != \"Check Point Cloud Security Platform - Emails V2\"  \n\n// Seleção dos campos relevantes para análise\n| fields operation_name_orig,        // Nome da operação (Add member to role)\n         IDENTITY_NAME,              // Nome da identidade que executou a operação\n         IDENTITY_ORIG,              // Origem ou entidade autenticada (ex: app, service principal, user)\n         RAW_LOG,                    // Log bruto completo para referência detalhada\n         REFERENCED_RESOURCE_NAME    // Nome do recurso, função ou grupo que recebeu a modificação\n",
+    "is_enabled": false,
+    "description": "Este alerta monitora quando um usuário ou entidade concede privilégios administrativos ou de proprietário a outro usuário ou entidade no ambiente.",
+    "alert_name": "O365_Admin Privileges Granted",
+    "alert_category": "PRIVILEGE_ESCALATION",
+    "alert_type": null,
+    "alert_description": "O usuário ou entidade $IDENTITY_NAME executou a operação $operation_name_orig, adicionando o usuário ou entidade $REFERENCED_RESOURCE_NAME  em um rol de \"Administrator\" dentro do ambiente, verificar RAW_LOG para mais detalhes.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "actor_effective_username": "referenced_resource_name",
+      "actor_process_image_name": "identity_name"
+    },
+    "execution_mode": "REAL_TIME",
+    "search_window": null,
+    "simple_schedule": null,
+    "timezone": null,
+    "crontab": null,
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "identity_name",
+      "referenced_resource_name"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0003 - Persistence": [
+        "T1098 - Account Manipulation",
+        "T1098.001 - Account Manipulation: Additional Cloud Credentials"
+      ],
+      "TA0004 - Privilege Escalation": [
+        "T1098 - Account Manipulation",
+        "T1098.003 - Account Manipulation: Additional Cloud Roles"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

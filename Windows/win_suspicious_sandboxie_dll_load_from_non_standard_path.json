@@ -1,0 +1,42 @@
+[
+  {
+    "rule_id": 174,
+    "name": "WIN_Suspicious Sandboxie DLL Load from Non-Standard Path",
+    "severity": "SEV_030_MEDIUM",
+    "xql_query": "// ============================================================\n// Rule: WIN_Suspicious Sandboxie DLL Load from Non-Standard Path\n// Vendor: Windows\n// Objective:\n// Detect activity associated with WIN_Suspicious Sandboxie DLL Load from Non-Standard Path.\n// Severity: SEV_030_MEDIUM\n// Category: EXECUTION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0005 - Defense Evasion\n// Technique: T1574.001 - Hijack Execution Flow: DLL Search Order Hijacking\n\nconfig case_sensitive = false\n\n| dataset = xdr_data\n\n| filter agent_os_type = ENUM.AGENT_OS_WINDOWS\n| filter event_type = ENUM.LOAD_IMAGE\n\n| alter module_path = lowercase(action_module_path)\n\n// DLL específica do comportamento observado\n| filter module_path ~= \".*\\\\\\\\sbiedll\\\\.dll$\"\n\n// Exclui caminhos legítimos do Sandboxie\n| filter module_path !~= \"^c:\\\\\\\\program files\\\\\\\\sandboxie.\"\n| filter module_path !~= \"^c:\\\\\\\\program files\\\\\\\\sandboxie-plus.\"\n| filter module_path !~= \"^c:\\\\\\\\programdata\\\\\\\\sbie\\\\\\\\core\\\\\\\\.*\"\n\n| fields\n    _time,\n    agent_hostname,\n    agent_id,\n    agent_ip_addresses,\n    actor_effective_username,\n    actor_process_image_name,\n    actor_process_image_path,\n    actor_process_command_line,\n    action_module_path,\n    action_module_sha256,\n    event_type,\n    event_sub_type\n",
+    "is_enabled": false,
+    "description": "Detecta o carregamento da biblioteca SbieDll.dll, associada ao Sandboxie, a partir de diretórios não reconhecidos como caminhos legítimos de instalação ou operação do produto. O comportamento pode indicar uso de uma DLL copiada ou adulterada, tentativa de DLL hijacking ou execução de código utilizando componentes que simulam ou abusam do Sandboxie.",
+    "alert_name": "WIN_Suspicious Sandboxie DLL Load from Non-Standard Path",
+    "alert_category": "EXECUTION",
+    "alert_type": null,
+    "alert_description": "Foi identificado o carregamento da biblioteca SbieDll.dll a partir do caminho não reconhecido $action_module_path , no endpoint $agent_hostname . A DLL foi carregada pelo processo $actor_process_image_name , executado pelo usuário $actor_effective_username . O comportamento deve ser validado pelo SOC para identificar possível instalação não homologada do Sandboxie, DLL adulterada ou tentativa de hijacking do fluxo de execução.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "SCHEDULED",
+    "search_window": "1 hours",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "agent_hostname",
+      "action_module_sha256",
+      "action_module_path",
+      "actor_process_image_name"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0005 - Defense Evasion": [
+        "T1574.001 - Hijack Execution Flow: DLL Search Order Hijacking"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "AUTO",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

@@ -1,0 +1,41 @@
+[
+  {
+    "rule_id": 61,
+    "name": "THM_Masquerading Word Execution from Downloads",
+    "severity": "SEV_050_CRITICAL",
+    "xql_query": "// ============================================================\n// Rule: THM_Masquerading Word Execution from Downloads\n// Vendor: Windows\n// Objective:\n// Detect activity associated with THM_Masquerading Word Execution from Downloads.\n// Severity: SEV_050_CRITICAL\n// Category: EVASION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0005 - Defense Evasion\n// Technique: T1036 - Masquerading\n// Technique: T1036.006 - Masquerading: Space after Filename\n// Technique: T1036.008 - Masquerading: Masquerade File Type\n\n// 1) Fonte de dados\ndataset = xdr_data\n\n// 2) Selecione somente os campos úteis para a análise/investigação\n| fields\n    _time,\n    agent_hostname,\n    actor_effective_username,\n    actor_process_image_name,\n    actor_process_command_line,\n    action_process_image_name,\n    action_process_image_command_line,\n    action_process_file_info,\n    action_process_image_path,\n    event_type,\n    event_sub_type,\n    agent_os_type\n\n// 3) Restrinja para eventos de processo no Windows (início do processo)\n| filter\n    event_type     = ENUM.PROCESS\n    and event_sub_type = ENUM.PROCESS_START\n    and agent_os_type  = ENUM.AGENT_OS_WINDOWS\n\n// 4) Caminho do executável: somente itens iniciados a partir de C:\\Users\\<user>\\Downloads\n//    Obs.: usa regex case-insensitive para achar o diretório de Downloads do usuário\n| filter lowercase(action_process_image_path) ~= \"[a-z]:\\\\users\\\\[^\\\\]+\\\\downloads\"\n\n// 5) Extraia metadados do arquivo (campos de File Info/PE resources)\n| alter\n    original_name = action_process_file_info -> original_name,   // Nome original do binário (ex.: WINWORD.EXE)\n    description   = action_process_file_info -> description,     // Descrição do arquivo (ex.: Microsoft Word)\n    company       = action_process_file_info -> company,         // Vendor/empresa\n    internal_name = action_process_file_info -> internal_name    // Nome interno do binário (ex.: winword)\n\n// 6) Perfil “parece Word”: descrição menciona “microsoft word” OU\n//    internal_name == \"winword\" OU original_name == \"winword.exe\"\n//    E: o nome real do arquivo (image_name) é diferente do original_name → possível masquerading.\n| filter\n    (\n      lowercase(description)   contains \"microsoft word\"\n      or lowercase(internal_name) = \"winword\"\n      or lowercase(original_name) = \"winword.exe\"\n    )\n    and lowercase(original_name) != lowercase(action_process_image_name)\n",
+    "is_enabled": false,
+    "description": "Este alerta identifica tentativas de camuflagem de executáveis maliciosos que se passam por Microsoft Word. A detecção ocorre quando um arquivo é iniciado a partir da pasta Downloads em sistemas Windows e possui metadados (descrição, nome interno ou nome original) compatíveis com o Word, porém com nome real diferente do original.",
+    "alert_name": "THM_Masquerading Word Execution from Downloads",
+    "alert_category": "EVASION",
+    "alert_type": null,
+    "alert_description": "Foi detectada no host $agent_hostname a execução de um arquivo localizado na pasta Downloads que se apresenta como Microsoft Word nos metadados, mas cujo nome real do executável difere do nome original esperado, executado pelo usuário $actor_effective_username . Esse comportamento caracteriza possível masquerading, técnica utilizada para enganar usuários e sistemas de segurança, frequentemente associada à execução de arquivos maliciosos oriundos de campanhas de phishing.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "SCHEDULED",
+    "search_window": "10 minutes",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "agent_hostname"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0005 - Defense Evasion": [
+        "T1036 - Masquerading",
+        "T1036.006 - Masquerading: Space after Filename",
+        "T1036.008 - Masquerading: Masquerade File Type"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "AUTO",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

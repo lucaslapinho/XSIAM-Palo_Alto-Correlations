@@ -1,0 +1,49 @@
+[
+  {
+    "rule_id": 178,
+    "name": "EPM_User-Writable Path Privilege Elevation Activity",
+    "severity": "SEV_030_MEDIUM",
+    "xql_query": "// ============================================================\n// Rule: EPM_User-Writable Path Privilege Elevation Activity\n// Vendor: BeyondTrust\n// Objective:\n// Detect activity associated with EPM_User-Writable Path Privilege Elevation Activity.\n// Severity: SEV_030_MEDIUM\n// Category: PRIVILEGE_ESCALATION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0004 - Privilege Escalation\n// Technique: T1548 - Abuse Elevation Control Mechanism\n\nconfig case_sensitive = false\n\n| dataset = beyondtrust_epm_raw \n\n| filter is_epm_event = true\n| filter is_epm_privilege_event = true\n| filter epm_event_code in (100, 112)\n\n| alter\n    epm_process_command_line = json_extract_scalar(process, \"$.command_line\"),\n    epm_process_title = json_extract_scalar(process, \"$.title\"),\n    epm_parent_process_name = json_extract_scalar(process, \"$.parent.name\"),\n    epm_parent_process_path = json_extract_scalar(process, \"$.parent.executable\"),\n    epm_hosted_file_path = json_extract_scalar(process, \"$.HostedFile.path\"),\n    epm_hosted_file_sha256 = json_extract_scalar(process, \"$.HostedFile.hash.sha256\"),\n    process_path_lc = lowercase(process_path),\n    hosted_file_path_lc = lowercase(epm_hosted_file_path)\n\n// High-risk writable paths observed or operationally relevant\n| filter\n    process_path_lc ~= \"^c:\\\\\\\\users\\\\\\\\[^\\\\\\\\]+\\\\\\\\(downloads|desktop|appdata\\\\\\\\local\\\\\\\\temp|appdata\\\\\\\\roaming\\\\\\\\temp)\\\\\\\\.*\"\n    or process_path_lc ~= \"^c:\\\\\\\\(temp|windows\\\\\\\\temp)\\\\\\\\.*\"\n    or process_path_lc ~= \"^c:\\\\\\\\programdata\\\\\\\\[^\\\\\\\\]+\\\\\\\\temp\\\\\\\\.*\"\n    or hosted_file_path_lc ~= \"^c:\\\\\\\\users\\\\\\\\[^\\\\\\\\]+\\\\\\\\(downloads|desktop|appdata\\\\\\\\local\\\\\\\\temp|appdata\\\\\\\\roaming\\\\\\\\temp)\\\\\\\\.*\"\n    or hosted_file_path_lc ~= \"^c:\\\\\\\\(temp|windows\\\\\\\\temp)\\\\\\\\.*\"\n    or hosted_file_path_lc ~= \"^c:\\\\\\\\programdata\\\\\\\\[^\\\\\\\\]+\\\\\\\\temp\\\\\\\\.*\"\n\n| fields\n    _time,\n    epm_event_code,\n    event_type,\n    event_message,\n    risk_level,\n    endpoint_name,\n    endpoint_id,\n    endpoint_ip,\n    epm_username,\n    user_domain,\n    process_name,\n    process_path,\n    epm_process_command_line,\n    epm_process_title,\n    epm_parent_process_name,\n    epm_parent_process_path,\n    epm_hosted_file_path,\n    epm_hosted_file_sha256\n",
+    "is_enabled": false,
+    "description": "Detectar processos que exigiram elevação ou receberam direitos administrativos quando executados de diretórios graváveis pelo usuário ou temporários. Aplica Event IDs 100/112 e testa tanto process_path quanto HostedFile.path contra diretórios de maior risco; AppData\\Local\\Programs foi deliberadamente excluído por alto volume legítimo.",
+    "alert_name": "EPM_User-Writable Path Privilege Elevation Activity",
+    "alert_category": "PRIVILEGE_ESCALATION",
+    "alert_type": null,
+    "alert_description": "Foi identificada atividade de privilégio para o processo $process_name executado a partir do caminho gravável $process_path no endpoint $endpoint_name , pelo usuário $epm_username . O SOC deve validar a origem, assinatura e legitimidade do arquivo.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "agent_hostname": "endpoint_name",
+      "action_local_ip": "endpoint_ip",
+      "agent_device_domain": "user_domain",
+      "actor_effective_username": "epm_username",
+      "actor_process_image_name": "process_name",
+      "actor_process_image_path": "process_path",
+      "actor_process_command_line": "epm_process_command_line"
+    },
+    "execution_mode": "REAL_TIME",
+    "search_window": null,
+    "simple_schedule": null,
+    "timezone": null,
+    "crontab": null,
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "endpoint_name",
+      "epm_username",
+      "process_path"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0004 - Privilege Escalation": [
+        "T1548 - Abuse Elevation Control Mechanism"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

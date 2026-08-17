@@ -1,0 +1,41 @@
+[
+  {
+    "rule_id": 85,
+    "name": "EPM_Endpoint Added to Monitored Group",
+    "severity": "SEV_030_MEDIUM",
+    "xql_query": "// ============================================================\n// Rule: EPM_Endpoint Added to Monitored Group\n// Vendor: BeyondTrust\n// Objective:\n// Detect activity associated with EPM_Endpoint Added to Monitored Group.\n// Severity: SEV_030_MEDIUM\n// Category: PRIVILEGE_ESCALATION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0004 - Privilege Escalation\n\n// Configuração inicial: define o dataset de origem dos logs do BeyondTrust EPM  \n// O dataset 'beyondtrust_epm_raw' contém eventos gerados pela solução BeyondTrust Endpoint Privilege Management (EPM)  \n// Esses eventos incluem ações administrativas, adição de usuários a grupos e alterações de políticas de privilégio  \ndataset = beyondtrust_epm_raw  \n\n// Criação (ou renomeação) de campos para facilitar a leitura e análise  \n// O operador '->' acessa atributos dentro da estrutura JSON do campo 'event'  \n| alter \n    action = event -> action,   // Ação registrada no evento (ex: inclusão de usuário em grupo)  \n    reason = event -> reason    // Motivo associado à ação (ex: justificativa ou descrição do evento)  \n\n// Filtro para retornar apenas eventos cujo motivo indique adição de novo computador  \n// ao grupo \"SI\" — grupo classificado como sensível devido a privilégios elevados  \n| filter reason = \"New computer to group SI \"\n\n// Seleção dos campos relevantes para exibição e correlação  \n// Esses campos são úteis para auditoria e investigação de movimentações privilegiadas  \n| fields \n    action,    // Ação executada (ex: Add to Group)  \n    user,      // Usuário associado à ação  \n    reason     // Motivo ou descrição da inclusão\n",
+    "is_enabled": false,
+    "description": "Detectada a adição de um endpoint a um grupo monitorado do EPM classificado como sensível, devido a privilégios elevados.",
+    "alert_name": "EPM_User Added to Monitored Group",
+    "alert_category": "PRIVILEGE_ESCALATION",
+    "alert_type": null,
+    "alert_description": "Detectado a ação do usuário $user , adicionando uma nova máquina a um grupo privilegiado no EPM. Favor, consultar os logs do EPM para maiores informações.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "agent_device_domain": "reason",
+      "actor_effective_username": "user",
+      "actor_process_command_line": "action"
+    },
+    "execution_mode": "REAL_TIME",
+    "search_window": null,
+    "simple_schedule": null,
+    "timezone": null,
+    "crontab": null,
+    "suppression_enabled": true,
+    "suppression_duration": "20 minutes",
+    "suppression_fields": [
+      "user"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0004 - Privilege Escalation": []
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

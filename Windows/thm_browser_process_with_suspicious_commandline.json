@@ -1,0 +1,37 @@
+[
+  {
+    "rule_id": 57,
+    "name": "THM_Browser Process with suspicious CommandLine",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: THM_Browser Process with suspicious CommandLine\n// Vendor: Windows\n// Objective:\n// Detect activity associated with THM_Browser Process with suspicious CommandLine.\n// Severity: SEV_040_HIGH\n// Category: EXECUTION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0002 - Execution\n// Technique: T1059 - Command and Scripting Interpreter\n\n// Desabilita diferenciação entre maiúsculas e minúsculas para comparações\nconfig case_sensitive = false  \n\n// Define o dataset de origem como dados brutos do Cortex XDR\n| dataset = xdr_data  \n\n// Filtra apenas eventos relacionados a processos\n| filter event_type = ENUM.PROCESS  \n\n// Restringe aos eventos de início de processo\n| filter event_sub_type = ENUM.PROCESS_START  \n\n// Foca apenas em navegadores específicos\n| filter action_process_image_name in (\"chrome.exe\", \"msedge.exe\", \"brave.exe\", \"opera.exe\")  \n\n// Identifica execução com parâmetros suspeitos associados a uso automatizado de navegadores\n// Indicadores: execução em modo headless, sem GPU e sem sandbox\n| filter (action_process_image_command_line contains \"–headless\" \n       and action_process_image_command_line contains \"–disable-gpu\" \n       and action_process_image_command_line contains \"–no-sandbox\")  \n\n// Seleciona os campos relevantes para análise\n| fields _time,                               // Momento do evento\n         agent_hostname,                      // Nome do host onde ocorreu a execução\n         actor_effective_username,            // Usuário efetivo que iniciou o processo\n         causality_actor_process_image_path,  // Caminho do processo raiz na cadeia causal\n         actor_process_image_path,            // Caminho completo do processo iniciado\n         actor_process_image_sha256,          // Hash SHA256 do binário do processo\n         action_process_image_command_line    // Linha de comando usada na execução\n",
+    "is_enabled": false,
+    "description": "Esta consulta descobre que o processo do navegador inicia com uma linha de comando suspeita para evitar a detecção",
+    "alert_name": "THM_Browser Process with suspicious CommandLine",
+    "alert_category": "EXECUTION",
+    "alert_type": null,
+    "alert_description": "Em $\\_time , foi identificado que o processo de navegador localizado em $actor_process_image_path (hash: $actor_process_image_sha256 ), iniciado por $actor_effective_username no host $agent_hostname , foi executado com a linha de comando suspeita: $action_process_image_command_line . O processo teve como origem $causality_actor_process_image_path . Esse comportamento pode indicar tentativa de evasão de detecção por parte de ameaças.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "REAL_TIME",
+    "search_window": null,
+    "simple_schedule": null,
+    "timezone": null,
+    "crontab": null,
+    "suppression_enabled": false,
+    "suppression_duration": null,
+    "suppression_fields": null,
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0002 - Execution": [
+        "T1059 - Command and Scripting Interpreter"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

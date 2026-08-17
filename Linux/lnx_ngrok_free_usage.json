@@ -1,0 +1,41 @@
+[
+  {
+    "rule_id": 38,
+    "name": "LNX_Ngrok Free Usage",
+    "severity": "SEV_050_CRITICAL",
+    "xql_query": "// ============================================================\n// Rule: LNX_Ngrok Free Usage\n// Vendor: Linux\n// Objective:\n// Detect activity associated with LNX_Ngrok Free Usage.\n// Severity: SEV_050_CRITICAL\n// Category: EXFILTRATION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0011 - Command and Control\n// Technique: T1572 - Protocol Tunneling\n\n// Habilita diferenciação entre maiúsculas e minúsculas nas comparações\nconfig case_sensitive = true  \n\n// Usa o preset \"network_story\", que consolida dados de tráfego de rede\n| preset = network_story  \n\n// Filtra processos cuja linha de comando contenha a string \"ngrok-free.app\"\n// Indicador de uso de túnel reverso baseado em ngrok\n| filter (`actor_process_command_line` contains \"\"\"ngrok-free.app\"\"\")\n",
+    "is_enabled": false,
+    "description": "Este alerta indica a execução do utilitário ngrok em um sistema Linux. O ngrok é comumente utilizado para expor serviços locais à internet e pode ser explorado por atacantes para estabelecer túneis de acesso remoto não autorizado, contornando firewalls e controles de rede.",
+    "alert_name": "LNX_Ngrok Free Usage",
+    "alert_category": "EXFILTRATION",
+    "alert_type": null,
+    "alert_description": "Detectado possível uso da ferramenta ngrok no host $agent_hostname por $actor_effective_username , com IP local $action_local_ip . O comando executado foi $actor_process_command_line , associado ao processo $dst_action_process_image_name .",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "agent_hostname": "agent_hostname",
+      "action_local_ip": "action_local_ip",
+      "actor_effective_username": "actor_effective_username"
+    },
+    "execution_mode": "REAL_TIME",
+    "search_window": null,
+    "simple_schedule": null,
+    "timezone": null,
+    "crontab": null,
+    "suppression_enabled": false,
+    "suppression_duration": null,
+    "suppression_fields": null,
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0011 - Command and Control": [
+        "T1572 - Protocol Tunneling"
+      ]
+    },
+    "investigation_query_link": "config case_sensitive = true \r\n| preset = network_story\r\n| filter (`actor_process_command_line` contains \"\"\"ngrok-free.app\"\"\")",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

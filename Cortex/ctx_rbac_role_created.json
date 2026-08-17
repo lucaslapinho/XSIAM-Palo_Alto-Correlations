@@ -1,0 +1,40 @@
+[
+  {
+    "rule_id": 107,
+    "name": "CTX_RBAC_Role_Created",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: CTX_RBAC_Role_Created\n// Vendor: Cortex\n// Objective:\n// Detect activity associated with CTX_RBAC_Role_Created.\n// Severity: SEV_040_HIGH\n// Category: PRIVILEGE_ESCALATION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0004 - Privilege Escalation\n\n// Configuração inicial: define que as comparações NÃO diferenciam maiúsculas/minúsculas\n// Motivo: reduz risco de perda de eventos por variação de caixa no campo subtype/description (ex.: \"Role Edited\" vs \"role edited\")\nconfig case_sensitive = false\n\n// Fonte de dados: Management Audit Logs do Cortex\n// O dataset 'management_auditing' registra ações administrativas executadas no console,\n// incluindo alterações de configuração, auditoria de RBAC e mudanças em permissões/roles.\n| dataset = management_auditing\n\n// Seleção dos campos principais para auditoria e correlação\n// Objetivo: capturar quem executou a ação, qual ação ocorreu e o detalhe do objeto impactado.\n| fields\n    _time,                    // Data/hora do evento (timestamp)\n    user_name,                // Usuário administrador que realizou a ação no console\n    management_auditing_type, // Categoria do evento de auditoria (ex.: configuração, RBAC, etc.)\n    subtype,                  // Subtipo/ação específica registrada (ex.: \"Role Edited\")\n    description               // Descrição detalhada (normalmente inclui role afetada e contexto da mudança)\n\n// Filtro: monitora edição de Roles (RBAC)\n// \"Role Created\" indica a criação de uma Role, podendo impactar permissões e acesso ao tenant.\n| filter subtype contains \"Role Created\"\n\n// Saída final: campos recomendados para correlação e notificação do alerta\n| fields\n    _time,\n    user_name,\n    management_auditing_type,\n    subtype,\n    description\n",
+    "is_enabled": false,
+    "description": "Regra para monitoração de criação de Roles (Privilégios de Acesso) ao Cortex/XSIAM.",
+    "alert_name": "CTX_RBAC_Role_Created",
+    "alert_category": "PRIVILEGE_ESCALATION",
+    "alert_type": null,
+    "alert_description": "Foi detectada a criação de uma Role (RBAC) no console do Cortex, realizada pelo usuário $user_name . Essa criação pode modificar permissões e níveis de acesso no tenant. Ações executadas: $description .",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "eventdescriptions": "description",
+      "actor_effective_username": "user_name"
+    },
+    "execution_mode": "SCHEDULED",
+    "search_window": "1 hours",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "user_name"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0004 - Privilege Escalation": []
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

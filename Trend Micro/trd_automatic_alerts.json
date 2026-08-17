@@ -1,0 +1,48 @@
+[
+  {
+    "rule_id": 145,
+    "name": "TRD_Automatic Alerts",
+    "severity": "SEV_050_CRITICAL",
+    "xql_query": "// ============================================================\n// Rule: TRD_Automatic Alerts\n// Vendor: Trend Micro\n// Objective:\n// Detect activity associated with TRD_Automatic Alerts.\n// Severity: SEV_050_CRITICAL\n// Category: OTHER\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0040 - Impact\n// Tactic: TA0002 - Execution\n// Technique: T1204.002 - User Execution: Malicious File\n// Technique: T1569.002 - System Services: Service Execution\n// Tactic: TA0001 - Initial Access\n// Technique: T1566 - Phishing\n\ndataset = trend_micro_trend_vision_one_raw\n\n// Filtra eventos Medium (5), High (7) e Critical (9) conforme padrão CEF do Trend\n| filter to_number(cefseverity) >= 5\n\n// Normaliza os campos para facilitar leitura e mapeamento no alerta\n| alter\n    alert_type      = cefname,                            // OAT, Audit, etc.\n    alert_name      = cat,                                // Nome amigável da detecção\n    severity_label  = if(cefseverity = \"5\", \"MEDIUM\",\n                       if(cefseverity = \"7\", \"HIGH\",\n                       if(cefseverity = \"9\", \"CRITICAL\", cefseverity))),\n    severity_num    = to_number(cefseverity),\n    host            = dvchost,\n    process         = deviceprocessname,\n    mitre_tactic    = if(cefname = \"Trend Vision One Observed Attack Technique\", cs1, null),\n    mitre_technique = if(cefname = \"Trend Vision One Observed Attack Technique\", cs2, null),\n    audit_user      = if(cefname contains \"Audit Log\", cs1, null),\n    audit_role      = if(cefname contains \"Audit Log\", cs2, null),\n    description     = msg,\n    trend_alert_id  = externalid,\n    trend_module    = devicefacility,\n    event_time      = rt\n\n// Campos finais exibidos no alerta\n| fields _time, event_time, severity_label, severity_num, alert_type, alert_name,\n         host, process, mitre_tactic, mitre_technique,\n         audit_user, audit_role, trend_module, trend_alert_id, description\n",
+    "is_enabled": false,
+    "description": "Centralizar a detecção e o tratamento de todos os alertas reportados pelo Trend Vision One que possuam severidade High (7) ou Critical (9), garantindo visibilidade imediata no SOC sobre eventos de risco elevado provenientes do ecossistema Trend Micro (endpoints, servidores, workloads e auditoria de tenant).",
+    "alert_name": "TRD_Automatic Alerts",
+    "alert_category": "OTHER",
+    "alert_type": null,
+    "alert_description": "Foi identificado um evento de severidade High ou Critical proveniente do Trend Vision One, reportado ao Cortex XSIAM via integração oficial.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "severity": "severity_label",
+      "processnames": "process",
+      "agent_hostname": "host"
+    },
+    "execution_mode": "REAL_TIME",
+    "search_window": null,
+    "simple_schedule": null,
+    "timezone": null,
+    "crontab": null,
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "host"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0040 - Impact": [],
+      "TA0002 - Execution": [
+        "T1204.002 - User Execution: Malicious File",
+        "T1569.002 - System Services: Service Execution"
+      ],
+      "TA0001 - Initial Access": [
+        "T1566 - Phishing"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

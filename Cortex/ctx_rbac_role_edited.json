@@ -1,0 +1,42 @@
+[
+  {
+    "rule_id": 106,
+    "name": "CTX_RBAC_Role_Edited",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: CTX_RBAC_Role_Edited\n// Vendor: Cortex\n// Objective:\n// Detect activity associated with CTX_RBAC_Role_Edited.\n// Severity: SEV_040_HIGH\n// Category: PRIVILEGE_ESCALATION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0004 - Privilege Escalation\n// Technique: T1098 - Account Manipulation\n\n// Configuração inicial: define que as comparações NÃO diferenciam maiúsculas/minúsculas\n// Motivo: reduz risco de perda de eventos por variação de caixa no campo subtype/description (ex.: \"Role Edited\" vs \"role edited\")\nconfig case_sensitive = false\n\n// Fonte de dados: Management Audit Logs do Cortex\n// O dataset 'management_auditing' registra ações administrativas executadas no console,\n// incluindo alterações de configuração, auditoria de RBAC e mudanças em permissões/roles.\n| dataset = management_auditing\n\n// Seleção dos campos principais para auditoria e correlação\n// Objetivo: capturar quem executou a ação, qual ação ocorreu e o detalhe do objeto impactado.\n| fields\n    _time,                    // Data/hora do evento (timestamp)\n    user_name,                // Usuário administrador que realizou a ação no console\n    management_auditing_type, // Categoria do evento de auditoria (ex.: configuração, RBAC, etc.)\n    subtype,                  // Subtipo/ação específica registrada (ex.: \"Role Edited\")\n    description               // Descrição detalhada (normalmente inclui role afetada e contexto da mudança)\n\n// Filtro: monitora edição de Roles (RBAC)\n// \"Role Edited\" indica alteração em uma Role existente, podendo impactar permissões e acesso ao tenant.\n| filter subtype contains \"Role Edited\"\n\n// Agrupamento temporal para uso em correlação (ex.: múltiplas edições em curto período)\n// Observação: o bin prepara o dado para regras correlacionadas por janela, mesmo que a query final mostre eventos individuais.\n| bin _time span = 1h\n\n// Saída final: campos recomendados para correlação e notificação do alerta\n| fields\n    _time,\n    user_name,\n    management_auditing_type,\n    subtype,\n    description\n",
+    "is_enabled": false,
+    "description": "Regra para monitoração de edição de Roles (Privilégios de Acesso) ao Cortex/XSIAM.",
+    "alert_name": "CTX_RBAC_Role_Edited",
+    "alert_category": "PRIVILEGE_ESCALATION",
+    "alert_type": null,
+    "alert_description": "Foi detectada a edição de uma Role (RBAC) no console do Cortex, realizada pelo usuário $user_name . Essa alteração pode modificar permissões e níveis de acesso no tenant. Ações executadas: $description .",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "eventdescriptions": "description",
+      "actor_effective_username": "user_name"
+    },
+    "execution_mode": "SCHEDULED",
+    "search_window": "1 hours",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "user_name"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0004 - Privilege Escalation": [
+        "T1098 - Account Manipulation"
+      ]
+    },
+    "investigation_query_link": "// Configuração inicial: define que as comparações NÃO diferenciam maiúsculas/minúsculas\r\n// Motivo: reduz risco de perda de eventos por variação de caixa no campo subtype/description (ex.: \"Role Edited\" vs \"role edited\")\r\nconfig case_sensitive = false\r\n\r\n// Fonte de dados: Management Audit Logs do Cortex\r\n// O dataset 'management_auditing' registra ações administrativas executadas no console,\r\n// incluindo alterações de configuração, auditoria de RBAC e mudanças em permissões/roles.\r\n| dataset = management_auditing\r\n\r\n// Seleção dos campos principais para auditoria e correlação\r\n// Objetivo: capturar quem executou a ação, qual ação ocorreu e o detalhe do objeto impactado.\r\n| fields\r\n    _time,                    // Data/hora do evento (timestamp)\r\n    user_name,                // Usuário administrador que realizou a ação no console\r\n    management_auditing_type, // Categoria do evento de auditoria (ex.: configuração, RBAC, etc.)\r\n    subtype,                  // Subtipo/ação específica registrada (ex.: \"Role Edited\")\r\n    description               // Descrição detalhada (normalmente inclui role afetada e contexto da mudança)\r\n\r\n// Filtro: monitora edição de Roles (RBAC)\r\n// \"Role Edited\" indica alteração em uma Role existente, podendo impactar permissões e acesso ao tenant.\r\n| filter subtype contains \"Role Edited\"\r\n\r\n// Agrupamento temporal para uso em correlação (ex.: múltiplas edições em curto período)\r\n// Observação: o bin prepara o dado para regras correlacionadas por janela, mesmo que a query final mostre eventos individuais.\r\n| bin _time span = 1h\r\n\r\n// Saída final: campos recomendados para correlação e notificação do alerta\r\n| fields\r\n    _time,\r\n    user_name,\r\n    management_auditing_type,\r\n    subtype,\r\n    description\r\n",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

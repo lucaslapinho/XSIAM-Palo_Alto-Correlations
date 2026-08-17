@@ -1,0 +1,44 @@
+[
+  {
+    "rule_id": 52,
+    "name": "WIN_GPO Was Modified",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: WIN_GPO Was Modified\n// Vendor: Windows\n// Objective:\n// Detect activity associated with WIN_GPO Was Modified.\n// Severity: SEV_040_HIGH\n// Category: INFILTRATION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0005 - Defense Evasion\n// Technique: T1484.001 - Domain Policy Modification: Group Policy Modification\n// Technique: T1484 - Domain Policy Modification\n\n// O preset de eventos do Windows é utilizado para analisar logs de segurança\npreset = xdr_event_log  \n\n// São considerados apenas os eventos 5136 (modificação de objeto no AD) e 5141 (exclusão de objeto no AD)\n| filter action_evtlog_event_id in (5136, 5141)  \n\n// A análise é restrita a objetos do tipo \"groupPolicyContainer\",\n// ou seja, eventos relacionados a alterações ou exclusões de Diretivas de Grupo (GPOs)\n| filter action_evtlog_data_fields -> ObjectClass = \"groupPolicyContainer\"  \n\n// Novos campos são criados para facilitar a interpretação dos resultados\n| alter\n    timestamp = _time,                                         // Momento em que o evento ocorreu\n    actor = actor_effective_username,                          // Usuário efetivo associado ao evento\n    ObjectDN = action_evtlog_data_fields -> ObjectDN,          // Distinguished Name do objeto de GPO\n    AttributeModified = action_evtlog_data_fields -> AttributeLDAPDisplayName, // Atributo alterado\n    OperationType = action_evtlog_data_fields -> OperationType, // Tipo de operação realizada\n    SubjectUserName = action_evtlog_data_fields -> SubjectUserName, // Usuário responsável pela ação\n    AttributeValue = action_evtlog_data_fields -> AttributeValue   // Novo valor do atributo modificado\n\n// Um join é realizado com o inventário do AD (pan_dss_raw) para enriquecer os dados,\n// permitindo correlacionar o SubjectUserName com o display_name do executor\n| join conflict_strategy=both type=left (\n    dataset=pan_dss_raw \n    | fields display_name as executor, sam_account_name\n) as whitelist \nwhitelist.sam_account_name = SubjectUserName  \n\n// São exibidos os campos mais relevantes para a investigação\n| fields timestamp, action_evtlog_data_fields, AttributeValue, agent_hostname, agent_ip_addresses, actor, SubjectUserName, executor, ObjectDN, AttributeModified, OperationType\n",
+    "is_enabled": false,
+    "description": "Foi detectada a modificação de um objeto de Política de Grupo (GPO) no ambiente Windows. A modificação de GPOs pode impactar diretamente a configuração e o comportamento de sistemas e usuários na rede. Este evento deve ser revisado para garantir que a ação foi autorizada e que não representa um risco à segurança ou conformidade do ambiente.",
+    "alert_name": "WIN_GPO Was Modified",
+    "alert_category": "INFILTRATION",
+    "alert_type": null,
+    "alert_description": "Foi detectada uma alteração de GPO realizada pelo usuário $SubjectUserName (executor: $executor) no host $agent_hostname com IP $agent_ip_addresses. A ação foi registrada pelo ator $actor. Recomenda-se validar a legitimidade dessa modificação.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "agent_hostname": "AttributeValue",
+      "actor_process_image_name": "executor",
+      "actor_process_image_path": "SubjectUserName"
+    },
+    "execution_mode": "SCHEDULED",
+    "search_window": "10 minutes",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "actor"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0005 - Defense Evasion": [
+        "T1484.001 - Domain Policy Modification: Group Policy Modification",
+        "T1484 - Domain Policy Modification"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

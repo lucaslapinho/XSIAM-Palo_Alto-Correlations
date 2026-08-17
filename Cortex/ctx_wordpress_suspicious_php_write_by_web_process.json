@@ -1,0 +1,48 @@
+[
+  {
+    "rule_id": 184,
+    "name": "CTX_WordPress Suspicious PHP Write by Web Process",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: CTX_WordPress Suspicious PHP Write by Web Process\n// Vendor: Cortex\n// Objective:\n// Detect activity associated with CTX_WordPress Suspicious PHP Write by Web Process.\n// Severity: SEV_040_HIGH\n// Category: INFILTRATION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0003 - Persistence\n// Technique: T1505.003 - Server Software Component: Web Shell\n\nconfig case_sensitive = false\n\n| dataset = xdr_data\n\n| filter event_type = ENUM.FILE\n\n| alter\n    web_process_lc = lowercase(actor_process_image_name),\n    file_name_lc = lowercase(action_file_name),\n    file_path_lc = lowercase(action_file_path)\n\n// Common Windows and Linux web/PHP worker processes\n| filter web_process_lc in (\n    \"w3wp.exe\",\n    \"php-cgi.exe\",\n    \"php.exe\",\n    \"php\",\n    \"php-fpm\",\n    \"php-fpm.exe\",\n    \"httpd.exe\",\n    \"httpd\",\n    \"apache2\",\n    \"nginx.exe\",\n    \"nginx\"\n)\n\n// WordPress-capable web roots\n| filter\n    file_path_lc contains \"\\\\wwwroot\\\\\"\n    or file_path_lc contains \"\\\\htdocs\\\\\"\n    or file_path_lc contains \"\\\\public_html\\\\\"\n    or file_path_lc contains \"\\\\inetpub\\\\\"\n    or file_path_lc contains \"/var/www/\"\n    or file_path_lc contains \"/srv/www/\"\n    or file_path_lc contains \"/usr/share/nginx/html/\"\n\n// High-confidence webshell placement patterns\n| filter\n    file_path_lc ~= \".*[\\\\\\\\/]wp-content[\\\\\\\\/]uploads[\\\\\\\\/].*\\\\.(php|phtml|phar)$\"\n    or file_name_lc ~= \"^(shell|cmd|c99|r57|b374k|wso|alfa|indoxploit|ghost|bypass|hack|eval|base64|adminer|uploader|downloader)([._-][a-z0-9_-]+)?\\\\.(php|phtml|phar)$\"\n    or file_name_lc ~= \".*\\\\.(jpg|jpeg|png|gif|txt|log|tmp)\\\\.(php|phtml)$\"\n\n| fields\n    _time,\n    agent_hostname,\n    agent_id,\n    agent_ip_addresses,\n    actor_effective_username,\n    actor_process_image_name,\n    actor_process_image_path,\n    actor_process_command_line,\n    actor_process_image_sha256,\n    action_file_name,\n    action_file_path,\n    action_file_sha256,\n    action_file_md5,\n    event_type,\n    event_sub_type\n",
+    "is_enabled": false,
+    "description": "Detecta gravação ou acesso de alto risco a arquivos PHP por processos web/PHP em diretórios WordPress, incluindo PHP em uploads, nomes clássicos de webshell e dupla extensão. O alerta é compatível com pós-exploração wp2shell, mas não prova a cadeia de CVEs.",
+    "alert_name": "SERVER_WordPress Suspicious PHP Write by Web Process",
+    "alert_category": "INFILTRATION",
+    "alert_type": null,
+    "alert_description": "Foi identificado um arquivo PHP suspeito no caminho $action_file_path do endpoint $agent_hostname , associado ao processo web $actor_process_image_name executado pelo usuário $actor_effective_username . O hash observado foi $action_file_sha256 . O SOC deve validar possível webshell ou comprometimento do WordPress.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "agent_hostname": "agent_hostname",
+      "actor_effective_username": "actor_effective_username",
+      "actor_process_image_name": "actor_process_image_name",
+      "actor_process_image_path": "actor_process_image_path",
+      "actor_process_command_line": "actor_process_command_line",
+      "actor_process_image_sha256": "actor_process_image_sha256"
+    },
+    "execution_mode": "REAL_TIME",
+    "search_window": null,
+    "simple_schedule": null,
+    "timezone": null,
+    "crontab": null,
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "agent_hostname",
+      "action_file_path",
+      "action_file_sha256"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0003 - Persistence": [
+        "T1505.003 - Server Software Component: Web Shell"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

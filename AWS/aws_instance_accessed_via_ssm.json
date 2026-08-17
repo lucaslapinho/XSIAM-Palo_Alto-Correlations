@@ -1,0 +1,39 @@
+[
+  {
+    "rule_id": 101,
+    "name": "AWS_Instance Accessed via SSM",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: AWS_Instance Accessed via SSM\n// Vendor: AWS\n// Objective:\n// Detect activity associated with AWS_Instance Accessed via SSM.\n// Severity: SEV_040_HIGH\n// Category: LATERAL_MOVEMENT\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0005 - Defense Evasion\n// Technique: T1108 - Redundant Access\n\n// Configuração inicial: comparações não diferenciam maiúsculas/minúsculas\n// Objetivo: evitar perda de eventos por variação de caixa em campos textuais (ex.: eventName)\nconfig case_sensitive = false\n\n// Fonte de dados: logs brutos do AWS (CloudTrail)\n// O dataset 'amazon_aws_raw' contém eventos de auditoria de serviços AWS, incluindo AWS Systems Manager (SSM).\n| dataset = amazon_aws_raw\n\n// Filtro: restringe aos eventos do serviço AWS SSM\n| filter eventSource = \"ssm.amazonaws.com\"\n\n// Filtro: monitora início de sessão via SSM Session Manager\n// eventName = \"StartSession\" indica abertura de sessão remota em um target (ex.: instância EC2)\n| filter eventName = \"StartSession\"\n\n// Extração: captura o principalId do executor (userIdentity.principalId)\n// Esse campo costuma conter informação suficiente para identificar o usuário/entidade executora.\n| alter principal_raw = to_json_string(useridentity) -> principalId\n\n// Normalização: extrai um identificador do usuário a partir do principalId\n// Em alguns formatos, o principalId pode vir como \"ID:email\" ou \"ID:nome\".\n// Aqui dividimos por \":\" e pegamos o segundo elemento (índice 1).\n| alter user_email = arrayindex(split(to_string(principal_raw), \":\"), 1)\n\n// Extração: identifica o target da sessão (instância/alvo)\n// requestParameters.target normalmente contém o instance-id (ex.: i-xxxxxxxxxxxx)\n| alter instance_id = json_extract_scalar(to_json_string(requestParameters), \"$.target\")\n\n// Saída final: campos recomendados para auditoria e alerta/correlação\n| fields\n    _time,      // Timestamp no XSIAM\n    eventTime,  // Timestamp original do CloudTrail\n    eventName,  // Ação executada (StartSession)\n    user_email, // Usuário/identificador extraído do principalId\n    instance_id // Alvo da sessão (ex.: instance-id)\n",
+    "is_enabled": false,
+    "description": "Regra para detectar acesso a instâncias EC2 da AWS via Session Manager.",
+    "alert_name": "AWS instance accessed via SSM",
+    "alert_category": "LATERAL_MOVEMENT",
+    "alert_type": null,
+    "alert_description": "O usuário $user_email iniciou uma sessão interativa na instância EC2 $instance_id  via AWS Session Manager. Essa ação caracteriza acesso administrativo a partir do console da AWS.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "REAL_TIME",
+    "search_window": null,
+    "simple_schedule": null,
+    "timezone": null,
+    "crontab": null,
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "user_email"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0005 - Defense Evasion": [
+        "T1108 - Redundant Access"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

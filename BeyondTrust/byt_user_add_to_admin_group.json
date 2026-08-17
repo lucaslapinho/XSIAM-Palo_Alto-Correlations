@@ -1,0 +1,43 @@
+[
+  {
+    "rule_id": 25,
+    "name": "BYT_User Add to Admin Group",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: BYT_User Add to Admin Group\n// Vendor: BeyondTrust\n// Objective:\n// Detect activity associated with BYT_User Add to Admin Group.\n// Severity: SEV_040_HIGH\n// Category: CREDENTIAL_ACCESS\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0004 - Privilege Escalation\n// Technique: T1098 - Account Manipulation\n// Technique: T1098.007 - Account Manipulation: Additional Local or Domain Groups\n\n// Fonte de dados: logs do BeyondTrust Password Safe\ndataset = beyondtrust_passwordsafe_raw  \n\n// Filtra apenas eventos que contenham o termo \"Administrators\" no log bruto\n// e que sejam da categoria \"Configure\" com evento do tipo \"Add\"\n| filter _raw_log contains \"Administrators\"  \n       and category = \"Configure\"  \n       and event_name = \"Add\"  \n\n// Seleciona os campos mais relevantes para análise\n| fields user,           // Usuário que executou a ação\n         category,       // Categoria do evento (ex.: Configure)\n         user_name,      // Nome do usuário associado\n         event_name,     // Tipo de evento (ex.: Add)\n         group_name,     // Nome do grupo envolvido\n         _raw_log        // Log bruto para contexto completo\n",
+    "is_enabled": false,
+    "description": "Este alerta indica que um usuário foi adicionado ao grupo de administradores da máquina ou do domínio. A adição de usuários a grupos com privilégios elevados, como o grupo \"Administradores\", pode representar um risco à segurança, especialmente se não for uma ação autorizada ou esperada. Essa atividade pode ser um indicativo de escalonamento de privilégios ou movimentações laterais por parte de um agente malicioso.",
+    "alert_name": "BYT_User Add to Admin Group",
+    "alert_category": "CREDENTIAL_ACCESS",
+    "alert_type": null,
+    "alert_description": "Este alerta indica que o usuário $user_name (categoria: $category , evento: $event_name ) foi adicionado ao grupo $group_name . A adição de usuários a grupos com privilégios elevados, como o grupo \"Administradores\", pode representar um risco à segurança, especialmente se não for uma ação autorizada ou esperada. Essa atividade pode ser um indicativo de escalonamento de privilégios ou movimentações laterais por parte de um agente malicioso. Recomendado revisar as permissões concedidas e validar se a ação foi legítima.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "agent_hostname": "group_name",
+      "agent_device_domain": "category",
+      "actor_effective_username": "user_name",
+      "actor_process_image_path": "event_name"
+    },
+    "execution_mode": "REAL_TIME",
+    "search_window": null,
+    "simple_schedule": null,
+    "timezone": null,
+    "crontab": null,
+    "suppression_enabled": false,
+    "suppression_duration": null,
+    "suppression_fields": null,
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0004 - Privilege Escalation": [
+        "T1098 - Account Manipulation",
+        "T1098.007 - Account Manipulation: Additional Local or Domain Groups"
+      ]
+    },
+    "investigation_query_link": "dataset=beyondtrust_passwordsafe_raw\r\n| filter _raw_log contains \"Administrators\" and category = \"Configure\" and event_name = \"Add\"\r\n| fields user, category, user_name, event_name, group_name, _raw_log",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

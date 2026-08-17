@@ -1,0 +1,40 @@
+[
+  {
+    "rule_id": 31,
+    "name": "GIT_Public Repository Created",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: GIT_Public Repository Created\n// Vendor: GIT\n// Objective:\n// Detect activity associated with GIT_Public Repository Created.\n// Severity: SEV_040_HIGH\n// Category: EXFILTRATION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0010 - Exfiltration\n// Technique: T1567 - Exfiltration Over Web Service\n// Technique: T1567.001 - Exfiltration Over Web Service: Exfiltration to Code Repository\n\n// Fonte de dados: logs brutos do GitHub\ndataset = github_github_raw  \n\n// Filtra apenas eventos onde a ação seja \"created\"\n// (ou seja, criação de um novo repositório)\n| filter action = \"created\"  \n\n// Cria campos derivados para facilitar a análise\n| alter\n    user = sender -> login,                   // Usuário que criou o repositório\n    enterprise_name = enterprise -> name,     // Nome da organização/enterprise\n    git_url = repository -> git_url,          // URL do repositório criado\n    private = repository -> private,          // Indica se o repositório é privado ou público\n    description = repository -> description   // Descrição fornecida para o repositório\n\n// Mantém apenas os repositórios criados como públicos\n| filter private != \"true\"  \n\n// Seleção dos campos principais para exibição\n| fields user, enterprise_name, git_url, private\n",
+    "is_enabled": false,
+    "description": "Este alerta indica que um novo repositório foi criado na conta do GitHub. A criação de repositórios pode ser parte de atividades legítimas de desenvolvimento, porém também pode representar riscos à segurança caso informações sensíveis sejam acidentalmente expostas ou se a criação estiver associada a ações não autorizadas.",
+    "alert_name": "GIT_Public Repository Created",
+    "alert_category": "EXFILTRATION",
+    "alert_type": null,
+    "alert_description": "O usuário $user criou um novo repositório na organização $enterprise_name : $git_url . O repositório está configurado como $private .",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "REAL_TIME",
+    "search_window": null,
+    "simple_schedule": null,
+    "timezone": null,
+    "crontab": null,
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "user"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0010 - Exfiltration": [
+        "T1567 - Exfiltration Over Web Service",
+        "T1567.001 - Exfiltration Over Web Service: Exfiltration to Code Repository"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

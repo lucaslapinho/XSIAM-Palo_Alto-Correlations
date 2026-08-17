@@ -1,0 +1,39 @@
+[
+  {
+    "rule_id": 69,
+    "name": "THM_Disable Windows Recovery Environment",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: THM_Disable Windows Recovery Environment\n// Vendor: Windows\n// Objective:\n// Detect activity associated with THM_Disable Windows Recovery Environment.\n// Severity: SEV_040_HIGH\n// Category: TAMPERING\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0005 - Defense Evasion\n// Technique: T1562.001 - Impair Defenses: Disable or Modify Tools\n\n// Configuração inicial: define que as comparações de strings não diferenciam maiúsculas/minúsculas\nconfig case_sensitive = false  \n\n// Fonte de dados: eventos coletados pelo Cortex XDR\n| dataset = xdr_data  \n\n// Filtro para selecionar apenas eventos do tipo PROCESS\n| filter event_type = ENUM.PROCESS  \n\n// Seleção dos campos mais relevantes para análise do processo\n| fields _time,                          // Data e hora do evento\n         agent_hostname,                 // Host onde ocorreu a execução\n         actor_process_image_name,       // Processo que originou a execução\n         action_process_image_name,      // Nome do processo em execução\n         action_process_image_command_line // Linha de comando do processo executado\n\n// Filtro adicional: detecção da execução do processo reagentc.exe\n// com o parâmetro \"/disable\"\n// - reagentc.exe é utilizado para gerenciar a recuperação do Windows\n// - a flag \"/disable\" pode indicar tentativa de desativar a recuperação do sistema\n| filter action_process_image_name = \"reagentc.exe\"\n        and lowercase(action_process_image_command_line) contains \"/disable\"\n",
+    "is_enabled": false,
+    "description": "Esta query identifica a execução do processo reagentc.exe com o parâmetro /disable em sistemas Windows. O utilitário ReAgentC é responsável pela configuração do ambiente de recuperação do Windows, e sua desativação pode indicar tentativa de impedir a restauração do sistema, possivelmente como parte de atividades maliciosas para dificultar a recuperação após um ataque.",
+    "alert_name": "THM_Disable Windows Recovery Environment",
+    "alert_category": "TAMPERING",
+    "alert_type": null,
+    "alert_description": "Foi detectada a execução do processo reagentc.exe com o parâmetro /disable no host $agent_hostname . Essa ação desativa o ambiente de recuperação do Windows, o que pode indicar tentativa de dificultar a restauração do sistema após uma possível atividade maliciosa.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "SCHEDULED",
+    "search_window": "1 hours",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "agent_hostname"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0005 - Defense Evasion": [
+        "T1562.001 - Impair Defenses: Disable or Modify Tools"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "AUTO",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

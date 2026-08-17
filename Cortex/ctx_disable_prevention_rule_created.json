@@ -1,0 +1,38 @@
+[
+  {
+    "rule_id": 42,
+    "name": "CTX_Disable Prevention Rule Created",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: CTX_Disable Prevention Rule Created\n// Vendor: Cortex\n// Objective:\n// Detect activity associated with CTX_Disable Prevention Rule Created.\n// Severity: SEV_040_HIGH\n// Category: EVASION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0005 - Defense Evasion\n// Technique: T1562 - Impair Defenses\n// Technique: T1562.001 - Impair Defenses: Disable or Modify Tools\n\ndataset = management_auditing \n\n\n| filter (description contains \"\"\"Agent Exception Rule added\"\"\")\n",
+    "is_enabled": false,
+    "description": "Uma nova exceção foi adicionada à regra de prevenção, potencialmente permitindo a execução de processos previamente bloqueados. Verifique se a alteração é autorizada e avalie o impacto na postura de segurança.",
+    "alert_name": "CTX_Disable Prevention Rule Created",
+    "alert_category": "EVASION",
+    "alert_type": null,
+    "alert_description": "O usuário $user_name criou uma exceção na política de prevenção em $timestamp : $description . Avaliar se a alteração é legítima e está em conformidade com as diretrizes de segurança.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "SCHEDULED",
+    "search_window": "10 minutes",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": false,
+    "suppression_duration": null,
+    "suppression_fields": null,
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0005 - Defense Evasion": [
+        "T1562 - Impair Defenses",
+        "T1562.001 - Impair Defenses: Disable or Modify Tools"
+      ]
+    },
+    "investigation_query_link": "dataset = management_auditing \r\n\r\n\r\n| filter (description contains \"\"\"Agent Exception Rule added\"\"\") ",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

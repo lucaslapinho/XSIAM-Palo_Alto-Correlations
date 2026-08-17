@@ -1,0 +1,37 @@
+[
+  {
+    "rule_id": 124,
+    "name": "Cisco Switch – Múltiplos logins bem-sucedidos em vários switches (≥8 em 1h)",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: Cisco Switch – Múltiplos logins bem-sucedidos em vários switches (≥8 em 1h)\n// Vendor: Cisco\n// Objective:\n// Detect activity associated with Cisco Switch – Múltiplos logins bem-sucedidos em vários switches (≥8 em 1h).\n// Severity: SEV_040_HIGH\n// Category: LATERAL_MOVEMENT\n// ============================================================\n// SANITIZED: Environment-specific values replaced with generic placeholders.\n// MITRE ATT&CK:\n// Tactic: TA0008 - Lateral Movement\n// Technique: T1021 - Remote Services\n\ndataset = cisco_switch_raw\n| filter _raw_log contains \"%SEC_LOGIN-5-LOGIN_SUCCESS\"\n| alter username = arrayindex(regextract(_raw_log, \"[[]user: ([^]]+)[]]\"), 0)\n| filter not (username = \"dna.cisco\" or username = \"<SERVICE_ACCOUNT_2>\")\n| bin _time span = 1h\n| comp count_distinct(_final_reporting_device_ip) as switches,\n       count() as logins\n  by username, _time\n| filter switches >= 8\n| sort desc switches\n",
+    "is_enabled": false,
+    "description": "Regra para detectar atividade anômala de acesso administrativo: gera caso quando um usuário (exceto contas de serviço) realiza logins bem-sucedidos em 8+ switches distintos em 1 hora",
+    "alert_name": "Cisco Switch – Múltiplos logins bem-sucedidos em vários switches (≥8 em 1h)",
+    "alert_category": "LATERAL_MOVEMENT",
+    "alert_type": null,
+    "alert_description": "O usuário $username, fez $LOGINS logins bem-sucedidos em $SWITCHES switches em 1 hora.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "SCHEDULED",
+    "search_window": "10 minutes",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": false,
+    "suppression_duration": null,
+    "suppression_fields": null,
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0008 - Lateral Movement": [
+        "T1021 - Remote Services"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

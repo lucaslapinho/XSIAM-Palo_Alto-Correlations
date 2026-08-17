@@ -1,0 +1,39 @@
+[
+  {
+    "rule_id": 153,
+    "name": "CTX_Deno Runtime Remote JavaScript Execution with Allow-All Permissions",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: CTX_Deno Runtime Remote JavaScript Execution with Allow-All Permissions\n// Vendor: Cortex\n// Objective:\n// Detect activity associated with CTX_Deno Runtime Remote JavaScript Execution with Allow-All Permissions.\n// Severity: SEV_040_HIGH\n// Category: EXECUTION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0002 - Execution\n// Technique: T1059.007 - Command and Scripting Interpreter: JavaScript\n\n// Title: CTX - Deno Runtime Remote JavaScript Execution with Allow-All Permissions\n// Description: Detecta execução de Deno com permissão ampla (-A/--allow-all) buscando JavaScript remoto.\n// Este padrão é incomum em endpoints corporativos e pode indicar execução de RAT ou payload malicioso.\n// MITRE ATT&CK: T1059.007 (JavaScript), T1105 (Ingress Tool Transfer)\n//\n// NOTA TH: Deno é runtime JavaScript/TypeScript que por design executa código remoto via URL.\n// Em ambientes corporativos, deno.exe é raramente legítimo — qualquer ocorrência deve ser investigada.\n// --allow-all ou -A desabilita o modelo de segurança sandbox do Deno, concedendo acesso total ao SO.\n// Pivô: verificar parent process, conexões de rede subsequentes e SHA256 do deno.exe.\n//\n// NOTA SINTAXE: O padrão (-[aA]) cobre tanto -a quanto -A (Deno usa -A maiúsculo como alias).\n// O padrão (^|\\s) garante que -A no início da cadeia de args também seja capturado.\n// Extensão .ts também coberta: Deno executa TypeScript nativo, não apenas .js.\n\nconfig case_sensitive = false\n| dataset = xdr_data\n\n// Escopo: eventos de processo em Windows\n| filter agent_os_type = ENUM.AGENT_OS_WINDOWS\n| filter event_type = ENUM.PROCESS\n    and event_sub_type = ENUM.PROCESS_START\n\n| fields\n    _time,\n    agent_hostname,\n    agent_ip_addresses,\n    actor_effective_username,\n    actor_process_image_name,\n    actor_process_image_path,\n    actor_process_command_line,\n    action_process_image_name,\n    action_process_image_path,\n    action_process_image_command_line,\n    action_process_image_sha256,\n    causality_actor_process_image_name,\n    causality_actor_process_command_line\n\n| alter action_cmd = lowercase(action_process_image_command_line)\n\n// Filtro 1: processo é deno.exe\n| filter action_process_image_name = \"deno.exe\"\n\n// Filtro 2: flag de permissão ampla — corrigido para cobrir -A no início de argumentos\n// Nota: -a e -A são capturados via [-aA]; (^|\\s) evita falso match em nomes de arquivo como \"--data\"\n| filter action_cmd ~= \"(^|\\\\s)--allow-all(\\\\s|$)\" or action_cmd ~= \"(^|\\\\s)-[aA](\\\\s|$)\"\n\n// Filtro 3: script carregado via URL remota — inclui .ts (TypeScript nativo do Deno)\n| filter action_cmd ~= \"https?://[^\\\\s\\\"']+\\\\.(js|ts|mjs)\"\n\n| sort desc _time\n",
+    "is_enabled": false,
+    "description": "Detecta execução de Deno com permissão ampla (-A/--allow-all) buscando JavaScript remoto. Este padrão é incomum em endpoints corporativos e pode indicar execução de RAT ou payload malicioso.",
+    "alert_name": "CTX_Deno Runtime Remote JavaScript Execution with Allow-All Permissions",
+    "alert_category": "EXECUTION",
+    "alert_type": null,
+    "alert_description": "Detectada execução suspeita do Deno Runtime no host $agent_hostname , com permissão ampla e carregamento de JavaScript remoto. Usuário: $actor_effective_username . Linha de comando: $action_process_image_command_line .",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "SCHEDULED",
+    "search_window": "1 hours",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "actor_effective_username"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0002 - Execution": [
+        "T1059.007 - Command and Scripting Interpreter: JavaScript"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "AUTO",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

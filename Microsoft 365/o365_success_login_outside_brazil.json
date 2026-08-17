@@ -1,0 +1,46 @@
+[
+  {
+    "rule_id": 32,
+    "name": "O365_Success Login Outside Brazil",
+    "severity": "SEV_030_MEDIUM",
+    "xql_query": "// ============================================================\n// Rule: O365_Success Login Outside Brazil\n// Vendor: Microsoft 365\n// Objective:\n// Detect activity associated with O365_Success Login Outside Brazil.\n// Severity: SEV_030_MEDIUM\n// Category: CREDENTIAL_ACCESS\n// ============================================================\n// SANITIZED: Environment-specific values replaced with generic placeholders.\n// MITRE ATT&CK:\n// Tactic: TA0001 - Initial Access\n// Technique: T1078 - Valid Accounts\n\ndataset = msft_azure_raw\n| filter operationName = \"Sign-in activity\" and category = \"SignInLogs\"\n| alter result_code = to_integer(resultType),\n        result_desc = resultDescription,\n        user_dst = properties -> userPrincipalName,\n        appDisplayName = properties -> appDisplayName,\n        userDisplayName = properties -> userDisplayName,\n        userAgent = properties -> userAgent,\n        authenticationRequirement = properties ->  authenticationRequirement,\n        isInteractive = properties -> isInteractive,\n        OS = json_extract_scalar(properties, \"$.deviceDetail.operatingSystem\"),\n        result = trim(arrayindex(regextract(properties, \"result\\\":\\\"([^,]+)\"), 0), \"\\\"\"),\n        City = json_extract_scalar(properties, \"$.location.city\"),\n        State = json_extract_scalar(properties, \"$.location.state\"),\n        Country = json_extract_scalar(properties, \"$.location.countryOrRegion\")\n\n\n// Altera as configurações de Multiplo Fator na autenticação\n| alter authenticationRequirement = if(authenticationRequirement = \"multiFactorAuthentication\", \"Autenticacao Multifatorial\", \"Autenticacao de Fator Unico\")\n\n//Outside Brazil Filter\n| filter (Country not in (null, \"\"\"\"\"\")) \n| filter Country != \"BR\" and resultSignature = \"SUCCESS\" and isInteractive = \"True\" and appDisplayName != \"Microsoft Azure Active Directory Connect\"\n\n//EXCEPTIONS\n\n//APP Exceptions\n\n| filter (appDisplayName not in (\"<INTERNAL_APPLICATION_1>\", \"<INTERNAL_APPLICATION_2>\", \"<INTERNAL_APPLICATION_6>\", \"JDBC Client Driver\", \"Microsoft Power BI\", \"Windows Sign In\")) \n\n//User Exceptions\n\n| filter (`user_dst` not in (\"<USER_EMAIL_1>\", \n\"<USER_EMAIL_2>\",\n\"<USER_EMAIL_3>\",\n\"<USER_EMAIL_4>\",\n\"<USER_EMAIL_5>\",\n\"<USER_EMAIL_2>\",\n\"<USER_EMAIL_6>\",\n\"<USER_EMAIL_7>\",\n\"<USER_EMAIL_8>\",\n\"<USER_EMAIL_9>\",\n\"<USER_EMAIL_10>\",\n\"<USER_EMAIL_11>\",\n\"<USER_EMAIL_12>\",\n\"<USER_EMAIL_12>\",\n\"<USER_EMAIL_13>\",\n\"<USER_EMAIL_14>\",\n\"<USER_EMAIL_15>\",\n\"<USER_EMAIL_16>\",\n\"<USER_EMAIL_17>\",\n\"<USER_EMAIL_1>\",\n\"<USER_EMAIL_18>\",\n\"<USER_EMAIL_19>\",\n\"<USER_EMAIL_20>\",\n\"<USER_EMAIL_7>\",\n\"<USER_EMAIL_21>\",\n\"<USER_EMAIL_22>\",\n\"<USER_EMAIL_23>\",\n\"<USER_EMAIL_24>\",\n\"<USER_EMAIL_25>\",\n\"<USER_EMAIL_26>\",\n\"<USER_EMAIL_27>\")) \n\n| filter user_dst contains \"<INTERNAL_DOMAIN_20>\"\n    or user_dst contains \"<INTERNAL_DOMAIN_10>\"\n    or user_dst contains \"<INTERNAL_DOMAIN_7>\"\n    or user_dst contains \"<INTERNAL_DOMAIN_11>\"\n    or user_dst contains \"<INTERNAL_DOMAIN_18>\"\n    or user_dst contains \"<INTERNAL_DOMAIN_16>\"\n    or user_dst contains \"<INTERNAL_DOMAIN_4>\"\n    or user_dst contains \"<INTERNAL_DOMAIN_26>\"\n    or user_dst contains \"<INTERNAL_DOMAIN_12>\"\n    or user_dst contains \"<INTERNAL_DOMAIN_17>\"\n    or user_dst contains \"<INTERNAL_DOMAIN_5>\"\n    or user_dst contains \"<INTERNAL_DOMAIN_13>\"\n    or user_dst contains \"<INTERNAL_DOMAIN_2>\"\n    or user_dst contains \"<INTERNAL_DOMAIN_14>\"\n    or user_dst contains \"<INTERNAL_DOMAIN_3>\"\n    or user_dst contains \"<INTERNAL_DOMAIN_1>\"\n    or user_dst contains \"<INTERNAL_DOMAIN_21>\"\n    or user_dst contains \"<INTERNAL_DOMAIN_27>\"\n    or user_dst contains \"<INTERNAL_DOMAIN_19>\"\n    or user_dst contains \"<INTERNAL_DOMAIN_28>\"\n    or user_dst contains \"<INTERNAL_DOMAIN_9>\"\n    or user_dst contains \"<INTERNAL_DOMAIN_22>\"\n    or user_dst contains \"<INTERNAL_DOMAIN_15>\"\n    or user_dst contains \"<INTERNAL_DOMAIN_23>\"\n    or user_dst contains \"<INTERNAL_DOMAIN_6>\"\n\n| fields userDisplayName, user_dst, Country, appDisplayName, useragent, city, state, authenticationRequirement, callerIpAddress\n",
+    "is_enabled": false,
+    "description": "Este alerta indica que foi realizada com sucesso uma tentativa de login em uma conta do Office 365 a partir de uma localização geográfica fora do Brasil. Embora o acesso possa ser legítimo, ele pode também representar risco de comprometimento de credenciais, especialmente se não houver justificativa para acessos internacionais. Recomenda-se verificar o usuário envolvido, o endereço IP de origem, o país do login e se há histórico recente de logins similares. Caso o acesso não seja reconhecido, medidas como redefinição de senha e verificação de MFA devem ser consideradas.",
+    "alert_name": "O365_Success Login Outside Brazil",
+    "alert_category": "CREDENTIAL_ACCESS",
+    "alert_type": null,
+    "alert_description": "O usuário $userDisplayName ( $user_dst ) acessou o aplicativo $appDisplayName com sucesso a partir de $city / $state – $Country , com IP $callerIpAddress e requisito de autenticação $authenticationRequirement .",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "agent_hostname": "user_dst",
+      "action_local_ip": "callerIpAddress",
+      "action_remote_ip": "callerIpAddress",
+      "agent_device_domain": "appDisplayName",
+      "actor_effective_username": "user_dst",
+      "actor_process_image_path": "user_dst"
+    },
+    "execution_mode": "SCHEDULED",
+    "search_window": "1 hours",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "12 hours",
+    "suppression_fields": [
+      "user_dst"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0001 - Initial Access": [
+        "T1078 - Valid Accounts"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

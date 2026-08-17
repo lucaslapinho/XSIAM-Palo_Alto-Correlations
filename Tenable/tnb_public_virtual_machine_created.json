@@ -1,0 +1,40 @@
+[
+  {
+    "rule_id": 44,
+    "name": "TNB_Public Virtual Machine Created",
+    "severity": "SEV_050_CRITICAL",
+    "xql_query": "// ============================================================\n// Rule: TNB_Public Virtual Machine Created\n// Vendor: Tenable\n// Objective:\n// Detect activity associated with TNB_Public Virtual Machine Created.\n// Severity: SEV_050_CRITICAL\n// Category: OTHER\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0005 - Defense Evasion\n// Technique: T1578 - Modify Cloud Compute Infrastructure\n// Technique: T1578.002 - Modify Cloud Compute Infrastructure: Create Cloud Instance\n\n// Fonte de dados: logs brutos do Tenable\ndataset = tenable_tenable_raw  \n\n// Filtro para identificar apenas eventos com o título específico\n// \"Public Virtual Machine\"\n| filter (title = \"\"\"Public Virtual Machine\"\"\")  \n\n// Seleção dos campos mais relevantes para análise\n| fields title,            // Título da detecção (descrição curta do achado)\n         description,      // Detalhes adicionais do alerta\n         accountName,      // Conta de nuvem associada ao recurso\n         resourceOwner,    // Proprietário do recurso identificado\n         sentBy,           // Origem do alerta ou mecanismo de detecção\n         policyName,       // Política de conformidade ou segurança violada\n         resources,        // Recursos impactados (ex.: IDs das VMs públicas)\n         accountName,      // Conta associada (repetida, útil para correlação)\n         link              // Link para detalhes completos no Tenable\n",
+    "is_enabled": false,
+    "description": "Regra para detecção de criação de máquinas virtuais detectado pelo Tenable.",
+    "alert_name": "TNB_Public Virtual Machine Created",
+    "alert_category": "OTHER",
+    "alert_type": null,
+    "alert_description": "Alerta $description , na conta $accountName , de responsabilidade de $resourceOwner , enviado por $sentBy , originado da conta $accountName ; mais detalhes em $link .",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "SCHEDULED",
+    "search_window": "10 minutes",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "sentBy"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0005 - Defense Evasion": [
+        "T1578 - Modify Cloud Compute Infrastructure",
+        "T1578.002 - Modify Cloud Compute Infrastructure: Create Cloud Instance"
+      ]
+    },
+    "investigation_query_link": "dataset = tenable_tenable_raw \r\n| filter (title = \"\"\"Public Virtual Machine\"\"\")\r\n| fields title, accountName, resourceOwner, sentBy, policyName, resources, accountName, link",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

@@ -1,0 +1,37 @@
+[
+  {
+    "rule_id": 58,
+    "name": "THM_Curl with ChatID and Telegram API",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: THM_Curl with ChatID and Telegram API\n// Vendor: Windows\n// Objective:\n// Detect activity associated with THM_Curl with ChatID and Telegram API.\n// Severity: SEV_040_HIGH\n// Category: EXECUTION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0010 - Exfiltration\n// Technique: T1041 - Exfiltration Over C2 Channel\n\n// Desabilita diferenciação entre maiúsculas e minúsculas para comparações\nconfig case_sensitive = false  \n\n// Define o dataset de origem como dados brutos do Cortex XDR\n| dataset = xdr_data  \n\n// Filtra apenas eventos relacionados a processos\n| filter event_type = ENUM.PROCESS  \n\n// Restringe para identificar execução específica do binário curl.exe\n| filter action_process_image_name = \"curl.exe\"  \n\n// Busca indícios de uso do curl para comunicação com a API do Telegram\n// Indicadores: presença de parâmetros \"chat_id\" e URL de bot do Telegram\n| filter action_process_image_command_line contains \"chat_id\"  \n       and action_process_image_command_line contains \"api.telegram.org/bot\"  \n\n// Seleciona os campos relevantes para análise\n| fields _time,                               // Momento do evento\n         agent_hostname,                      // Nome do host onde ocorreu a execução\n         actor_effective_username,            // Usuário efetivo que iniciou o processo\n         causality_actor_process_image_path,  // Caminho do processo raiz na cadeia causal\n         actor_process_image_path,            // Caminho completo do processo iniciado\n         action_process_image_command_line    // Linha de comando usada na execução\n",
+    "is_enabled": false,
+    "description": "Stealers usam curl com chatID e telegramAPI para exfiltrar os dados",
+    "alert_name": "THM_Curl with ChatID and Telegram API",
+    "alert_category": "EXECUTION",
+    "alert_type": null,
+    "alert_description": "Em $_time, foi detectado no host $agent_hostname o uso da ferramenta curl pelo usuário $actor_effective_username com a linha de comando $action_process_image_command_line , tendo como origem o processo $causality_actor_process_image_path e sendo executado a partir de $actor_process_image_path . Este padrão é típico de stealers que utilizam chatID e Telegram API para exfiltrar dados de forma automatizada.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "REAL_TIME",
+    "search_window": null,
+    "simple_schedule": null,
+    "timezone": null,
+    "crontab": null,
+    "suppression_enabled": false,
+    "suppression_duration": null,
+    "suppression_fields": null,
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0010 - Exfiltration": [
+        "T1041 - Exfiltration Over C2 Channel"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "AUTO",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

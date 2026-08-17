@@ -1,0 +1,37 @@
+[
+  {
+    "rule_id": 83,
+    "name": "THM_SOCKS Proxy in Unusual Location",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: THM_SOCKS Proxy in Unusual Location\n// Vendor: Windows\n// Objective:\n// Detect activity associated with THM_SOCKS Proxy in Unusual Location.\n// Severity: SEV_040_HIGH\n// Category: EXECUTION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0011 - Command and Control\n// Technique: T1095 - Non-Application Layer Protocol\n\n// Configuração inicial: comparações não diferenciam maiúsculas/minúsculas\nconfig case_sensitive = false\n\n// Fonte de dados: dataset de telemetria do agente XDR\n// 'xdr_data' contém eventos detalhados de processo, carregamento de módulos, rede, etc.\n| dataset = xdr_data\n\n// Filtra apenas eventos de carregamento de imagem (ex.: LoadLibrary / Load Image) em Windows\n| filter event_type = ENUM.LOAD_IMAGE\n| filter agent_os_type = ENUM.AGENT_OS_WINDOWS\n\n// Seleção dos campos relevantes para investigação e contexto forense\n| fields\n    event_type,                                 // Tipo de evento (LOAD_IMAGE)\n    event_sub_type,                             // Subtipo do evento\n    agent_hostname,                             // Host afetado\n    actor_effective_username,                   // Usuário efetivo do processo\n    causality_actor_process_image_name,         // Processo causal (ancestral)\n    causality_actor_process_image_path,         // Caminho do processo causal\n    causality_actor_process_command_line,       // Linha de comando do processo causal\n    causality_actor_process_image_sha256,       // SHA256 do binário causal\n    causality_actor_process_file_original_name, // Nome original do arquivo causal\n    causality_actor_process_signature_status,   // Status da assinatura do binário causal\n    causality_actor_process_signature_product,  // Produto da assinatura do binário causal\n    causality_actor_process_signature_vendor,   // Vendor da assinatura do binário causal\n    causality_actor_process_instance_id,        // ID da instância do processo causal\n\n    actor_process_image_name,                   // Processo que carregou o módulo (ex: rundll32.exe)\n    actor_process_image_path,                   // Caminho do processo que carregou o módulo\n    actor_process_command_line,                 // Linha de comando do processo que carregou o módulo\n    actor_process_image_sha256,                 // SHA256 do executável que carregou o módulo\n    actor_process_file_original_name,           // Nome original do executável\n    actor_process_signature_status,             // Status da assinatura do executável\n    actor_process_signature_product,            // Produto da assinatura do executável\n    actor_process_signature_vendor,             // Vendor da assinatura do executável\n    actor_process_instance_id,                  // ID da instância do processo\n\n    action_module_path,                         // Caminho do módulo carregado (.dll)\n    action_module_sha256,                       // SHA256 do módulo carregado\n    action_module_signature_status,             // Status da assinatura do módulo\n    action_module_signature_product,            // Produto da assinatura do módulo\n    action_module_signature_vendor,             // Vendor da assinatura do módulo\n    action_module_file_info,                    // Informações adicionais do arquivo do módulo\n\n    agent_os_type,                              // Tipo do SO do agente (Windows)\n    agent_os_sub_type,                          // Subtipo do SO\n    agent_id                                    // Identificador do agente/reportador\n\n// Filtra linhas de comando que contenham 'rundll32' e 'socks64' (insensível a maiúsculas)\n| filter lowercase(actor_process_command_line) contains \"rundll32\"\n| filter lowercase(actor_process_command_line) contains \"socks64\"\n\n// Filtra módulos carregados localizados em caminhos tipicamente usados por malware/execução persistente\n// Uso de =~ ou ~= pressupõe suporte a regex; aqui está usando operador de regex ~= (conforme sua origem)\n| filter\n    lowercase(action_module_path) ~= \"\\\\temp(\\\\[^\\\\\\r\\n\\t\\f\\v]+)+\\.dll\" OR\n    lowercase(action_module_path) ~= \"\\\\roaming(\\\\[^\\\\\\r\\n\\t\\f\\v]+)+\\.dll\" OR\n    lowercase(action_module_path) ~= \"\\\\perflogs(\\\\[^\\\\\\r\\n\\t\\f\\v]+)+\\.dll\" OR\n    lowercase(action_module_path) ~= \"\\\\programdata(\\\\[^\\\\\\r\\n\\t\\f\\v]+)+\\.dll\" OR\n    lowercase(action_module_path) ~= \"\\\\users(\\\\[^\\\\\\r\\n\\t\\f\\v]+)+\\.dll\" OR\n    lowercase(action_module_path) ~= \"\\\\windows\\\\inf(\\\\[^\\\\\\r\\n\\t\\f\\v]+)+\\.dll\" OR\n    lowercase(action_module_path) ~= \"\\\\windows\\\\fonts(\\\\[^\\\\\\r\\n\\t\\f\\v]+)+\\.dll\" OR\n    lowercase(action_module_path) ~= \"\\\\windows\\\\csc(\\\\[^\\\\\\r\\n\\t\\f\\v]+)+\\.dll\"\n\n// Ordena cronologicamente ascendente\n| sort asc _time\n",
+    "is_enabled": false,
+    "description": "Carregamento de proxies SOCKS em diretórios do sistema para ofuscação de C2",
+    "alert_name": "THM_SOCKS Proxy in Unusual Location",
+    "alert_category": "EXECUTION",
+    "alert_type": null,
+    "alert_description": "Detecção de carregamento suspeito de DLL por meio do processo rundll32.exe contendo referência a socks64, proveniente de diretórios incomuns (ex.: Temp, Roaming, ProgramData). Esse comportamento pode indicar execução maliciosa de módulo injetado ou tentativa de persistência e comunicação por proxy SOCKS em ambiente Windows.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "SCHEDULED",
+    "search_window": "1 hours",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": false,
+    "suppression_duration": null,
+    "suppression_fields": null,
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0011 - Command and Control": [
+        "T1095 - Non-Application Layer Protocol"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "AUTO",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

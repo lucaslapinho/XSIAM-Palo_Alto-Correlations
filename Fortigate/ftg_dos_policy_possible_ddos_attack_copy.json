@@ -1,0 +1,43 @@
+[
+  {
+    "rule_id": 19,
+    "name": "FTG_DOS Policy Possible DDoS Attack (Copy)",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: FTG_DOS Policy Possible DDoS Attack (Copy)\n// Vendor: Fortigate\n// Objective:\n// Detect activity associated with FTG_DOS Policy Possible DDoS Attack (Copy).\n// Severity: SEV_040_HIGH\n// Category: OTHER\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0002 - Execution\n// Technique: T1204 - User Execution\n// Technique: T1204.002 - User Execution: Malicious File\n// Tactic: TA0001 - Initial Access\n\ndataset = fortinet_fortigate_raw\n| filter cat = \"utm:app-ctrl\"\n  and (FTNTFGTappcat = \"Proxy\" or FTNTFGTappcat = \"P2P\")\n| alter\n    timestamp = _time,\n    src_ip = src,\n    dst_ip = dst,\n    app_category = FTNTFGTapp,\n    application = app,\n    action_taken = act,\n    log_message = msg,\n    request_origin = dhost,\n    user = duser,\n    message = msg,\n    device_name = _reporting_device_name\n| fields timestamp, device_name, src_ip, dst_ip, app_category, application, message\n",
+    "is_enabled": false,
+    "description": "The FortiGate Application Control module detected traffic related to applications categorized as Proxy or Peer-to-Peer (P2P). These applications are often associated with bypassing security controls or facilitating unauthorized data transfer. This behavior may indicate policy violation, data exfiltration, or attempts to evade detection.",
+    "alert_name": "FTG_DOS Policy Possible DDoS Attack",
+    "alert_category": "OTHER",
+    "alert_type": null,
+    "alert_description": "The FortiGate Application Control module detected traffic related to applications categorized as Proxy or Peer-to-Peer (P2P). These applications are often associated with bypassing security controls or facilitating unauthorized data transfer. This behavior may indicate policy violation, data exfiltration, or attempts to evade detection.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "action_local_ip": "src_ip",
+      "agent_device_domain": "device_name",
+      "actor_effective_username": "dst_ip"
+    },
+    "execution_mode": "SCHEDULED",
+    "search_window": "10 minutes",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": false,
+    "suppression_duration": null,
+    "suppression_fields": null,
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0002 - Execution": [
+        "T1204 - User Execution",
+        "T1204.002 - User Execution: Malicious File"
+      ],
+      "TA0001 - Initial Access": []
+    },
+    "investigation_query_link": "dataset = fortinet_fortigate_raw\r\n| filter cat = \"utm:app-ctrl\"\r\n  and (FTNTFGTappcat = \"Proxy\" or FTNTFGTappcat = \"P2P\")\r\n| alter\r\n    timestamp = _time,\r\n    src_ip = src,\r\n    dst_ip = dst,\r\n    app_category = FTNTFGTapp,\r\n    application = app,\r\n    action_taken = act,\r\n    log_message = msg,\r\n    request_origin = dhost,\r\n    user = duser,\r\n    message = msg,\r\n    device_name = _reporting_device_name\r\n| fields timestamp, device_name, src_ip, dst_ip, app_category, application, message\r\n",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

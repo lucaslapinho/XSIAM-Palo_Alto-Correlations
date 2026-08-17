@@ -1,0 +1,37 @@
+[
+  {
+    "rule_id": 51,
+    "name": "WIN_VIP Account Disabled",
+    "severity": "SEV_050_CRITICAL",
+    "xql_query": "// ============================================================\n// Rule: WIN_VIP Account Disabled\n// Vendor: Windows\n// Objective:\n// Detect activity associated with WIN_VIP Account Disabled.\n// Severity: SEV_050_CRITICAL\n// Category: OTHER\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0040 - Impact\n// Technique: T1531 - Account Access Removal\n\n// Fonte dos dados: eventos do Cortex XDR\ndataset = xdr_data  \n\n// Filtro que seleciona apenas eventos de log do Windows (EVENT_LOG)\n// e especificamente aqueles com Event ID 4725 (desabilitação de conta de usuário)\n| filter event_type = ENUM.EVENT_LOG AND action_evtlog_event_id = 4725  \n\n// Criação de um campo para capturar o nome do usuário alvo (TargetUserName)\n// O valor é extraído do JSON de detalhes do evento e limpo de aspas extras\n| alter TargetUserName = trim(json_extract(action_evtlog_data_fields,\"$.TargetUserName\"),\"\\\"\")  \n\n// Junção com o dataset de usuários VIP (vip_users)\n// Permite verificar se a conta desabilitada pertence a um usuário crítico\n| join type = inner conflict_strategy = both (\n    dataset = vip_users\n    | fields SAM\n) as vip vip.SAM = TargetUserName  \n\n// Campos selecionados para exibição no resultado final\n| fields _time,                        // Data e hora do evento\n         agent_hostname,               // Nome do host que registrou o evento\n         TargetUserName,               // Conta de usuário desabilitada\n         agent_ip_addresses,           // Endereço IP do host\n         action_evtlog_message,        // Mensagem completa do evento\n         action_evtlog_event_id        // ID do evento (4725)\n",
+    "is_enabled": false,
+    "description": "Alerta para quando é desativada a conta de um usuário VIP.",
+    "alert_name": "WIN_VIP Account Disabled",
+    "alert_category": "OTHER",
+    "alert_type": null,
+    "alert_description": "A conta VIP $TargetUserName foi desativada no host $agent_hostname com o IP $agent_ip_addresses . Detalhes do evento: $action_evtlog_message (Event ID: $action_evtlog_event_id ). Recomenda-se a investigação imediata para validar a legitimidade desta ação.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "SCHEDULED",
+    "search_window": "10 minutes",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": false,
+    "suppression_duration": null,
+    "suppression_fields": null,
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0040 - Impact": [
+        "T1531 - Account Access Removal"
+      ]
+    },
+    "investigation_query_link": "dataset = xdr_data\r\n| filter event_type = ENUM.EVENT_LOG AND action_evtlog_event_id = 4725\r\n| alter TargetUserName = trim(json_extract(action_evtlog_data_fields,\"$.TargetUserName\"),\"\\\"\")\r\n| join type = inner conflict_strategy = both (\r\n    dataset = vip_users\r\n    | fields SAM\r\n) as vip vip.SAM = TargetUserName\r\n| fields _time, agent_hostname, TargetUserName, agent_ip_addresses, action_evtlog_message, action_evtlog_event_id",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

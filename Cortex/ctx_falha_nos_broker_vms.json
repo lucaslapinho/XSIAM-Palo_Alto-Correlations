@@ -1,0 +1,33 @@
+[
+  {
+    "rule_id": 71,
+    "name": "CTX_Falha nos Broker VMs",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: CTX_Falha nos Broker VMs\n// Vendor: Cortex\n// Objective:\n// Detect activity associated with CTX_Falha nos Broker VMs.\n// Severity: SEV_040_HIGH\n// Category: OTHER\n// ============================================================\n// SANITIZED: Environment-specific values replaced with generic placeholders.\n\ndataset = collection_auditing\n| filter _broker_device_id in (\"<BROKER_VM_ID_1>\", \"<BROKER_VM_ID_2>\") \n    and classification = \"Error\"\n",
+    "is_enabled": false,
+    "description": "Regra criada para identificar falhas nos Broker VMs",
+    "alert_name": "Falha nos Broker VMs",
+    "alert_category": "OTHER",
+    "alert_type": "Collection",
+    "alert_description": "Falha nos Broker VMs",
+    "alert_domain": "DOMAIN_HEALTH",
+    "alert_fields": {},
+    "execution_mode": "SCHEDULED",
+    "search_window": "10 minutes",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": false,
+    "suppression_duration": null,
+    "suppression_fields": null,
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {},
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

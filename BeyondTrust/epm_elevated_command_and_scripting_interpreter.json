@@ -1,0 +1,50 @@
+[
+  {
+    "rule_id": 176,
+    "name": "EPM_Elevated Command and Scripting Interpreter",
+    "severity": "SEV_030_MEDIUM",
+    "xql_query": "// ============================================================\n// Rule: EPM_Elevated Command and Scripting Interpreter\n// Vendor: BeyondTrust\n// Objective:\n// Detect activity associated with EPM_Elevated Command and Scripting Interpreter.\n// Severity: SEV_030_MEDIUM\n// Category: EXECUTION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0002 - Execution\n// Technique: T1059 - Command and Scripting Interpreter\n\nconfig case_sensitive = false\n\n| dataset = beyondtrust_epm_raw\n\n| filter is_epm_event = true\n| filter is_epm_privilege_event = true\n| filter epm_event_code in (100, 112)\n\n| alter\n    epm_process_command_line = json_extract_scalar(process, \"$.command_line\"),\n    epm_parent_process_name = json_extract_scalar(process, \"$.parent.name\"),\n    epm_parent_process_path = json_extract_scalar(process, \"$.parent.executable\"),\n    epm_hosted_file_path = json_extract_scalar(process, \"$.HostedFile.path\"),\n    epm_hosted_file_sha256 = json_extract_scalar(process, \"$.HostedFile.hash.sha256\"),\n    process_name_lc = lowercase(process_name)\n\n| filter process_name_lc in (\n    \"cmd.exe\",\n    \"python.exe\",\n    \"pythonw.exe\",\n    \"bash.exe\",\n    \"sh.exe\",\n    \"wscript.exe\",\n    \"cscript.exe\",\n    \"mshta.exe\"\n)\n\n| fields\n    _time,\n    epm_event_code,\n    event_type,\n    event_message,\n    risk_level,\n    endpoint_name,\n    endpoint_id,\n    endpoint_ip,\n    epm_username,\n    user_domain,\n    process_name,\n    process_path,\n    epm_process_command_line,\n    epm_parent_process_name,\n    epm_parent_process_path,\n    epm_hosted_file_path,\n    epm_hosted_file_sha256\n",
+    "is_enabled": false,
+    "description": "Detectar interpreters e shells que exigiram elevação ou receberam direitos administrativos, excluindo PowerShell para evitar duplicidade. Filtra eventos 100/112 e nomes exatos de interpreters: cmd, Python, bash/sh, Windows Script Host e mshta.",
+    "alert_name": "EPM_Elevated Command and Scripting Interpreter",
+    "alert_category": "EXECUTION",
+    "alert_type": null,
+    "alert_description": "Foi identificada atividade de privilégio do BeyondTrust EPM envolvendo o interpreter $process_name no endpoint $endpoint_name , executado pelo usuário $epm_username com o comando $epm_process_command_line . O SOC deve validar o script, o processo pai e a finalidade da execução.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "agent_hostname": "endpoint_name",
+      "action_local_ip": "endpoint_ip",
+      "agent_device_domain": "user_domain",
+      "actor_effective_username": "epm_username",
+      "actor_process_image_name": "process_name",
+      "actor_process_image_path": "process_path",
+      "actor_process_command_line": "epm_process_command_line"
+    },
+    "execution_mode": "REAL_TIME",
+    "search_window": null,
+    "simple_schedule": null,
+    "timezone": null,
+    "crontab": null,
+    "suppression_enabled": true,
+    "suppression_duration": "30 minutes",
+    "suppression_fields": [
+      "endpoint_name",
+      "epm_username",
+      "process_name",
+      "epm_process_command_line"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0002 - Execution": [
+        "T1059 - Command and Scripting Interpreter"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

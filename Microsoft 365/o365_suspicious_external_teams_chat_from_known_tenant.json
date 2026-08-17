@@ -1,0 +1,51 @@
+[
+  {
+    "rule_id": 173,
+    "name": "O365_Suspicious External Teams Chat from Known Tenant",
+    "severity": "SEV_030_MEDIUM",
+    "xql_query": "// ============================================================\n// Rule: O365_Suspicious External Teams Chat from Known Tenant\n// Vendor: Microsoft 365\n// Objective:\n// Detect activity associated with O365_Suspicious External Teams Chat from Known Tenant.\n// Severity: SEV_030_MEDIUM\n// Category: INFILTRATION\n// ============================================================\n// SANITIZED: Environment-specific values replaced with generic placeholders.\n// MITRE ATT&CK:\n// Tactic: TA0001 - Initial Access\n// Technique: T1566.003 - Phishing: Spearphishing via Service\n\nconfig case_sensitive = false\n\n| dataset = saas_audit_logs\n\n// Eventos de criação de chat no Teams\n| filter operation_name_orig = \"ChatCreated\"\n\n| alter\n    workload = json_extract_scalar(raw_log, \"$.Workload\"),\n    communication_type = json_extract_scalar(raw_log, \"$.CommunicationType\"),\n    participant_info = json_extract(raw_log, \"$.ParticipantInfo\"),\n    members = json_extract(raw_log, \"$.Members\"),\n    user_id = json_extract_scalar(raw_log, \"$.UserId\")\n\n| filter workload contains \"Teams\"\n| filter communication_type = \"OneOnOne\"\n\n// Campos relevantes do Teams\n| alter\n    HasForeignTenantUsers = json_extract_scalar(participant_info, \"$.HasForeignTenantUsers\"),\n    HasGuestUsers = json_extract_scalar(participant_info, \"$.HasGuestUsers\"),\n    HasUnauthenticatedUsers = json_extract_scalar(participant_info, \"$.HasUnauthenticatedUsers\"),\n    ParticipatingDomains = json_extract(participant_info, \"$.ParticipatingDomains\"),\n    ParticipatingSIPDomains = json_extract(participant_info, \"$.ParticipatingSIPDomains\"),\n    RequestDomain = arrayindex(regextract(user_id, \"^.@(.)$\"), 0),\n    user1 = json_extract_scalar(members, \"$.0.UPN\"),\n    user2 = json_extract_scalar(members, \"$.1.UPN\"),\n    display_name = json_extract_scalar(members, \"$.0.DisplayName\")\n\n// Domínio externo suspeito\n| filter identity_name contains \"<INTERNAL_DOMAIN_24>\"\n    or to_string(ParticipatingDomains) contains \"<INTERNAL_DOMAIN_24>\"\n    or to_string(ParticipatingSIPDomains) contains \"<INTERNAL_DOMAIN_24>\"\n\n| fields\n    _time,\n    caller_ip,\n    identity_name,\n    operation_name_orig,\n    workload,\n    communication_type,\n    RequestDomain,\n    HasForeignTenantUsers,\n    HasGuestUsers,\n    HasUnauthenticatedUsers,\n    ParticipatingDomains,\n    ParticipatingSIPDomains,\n    user1,\n    user2,\n    display_name,\n    raw_log\n",
+    "is_enabled": false,
+    "description": "Detecta a criação de conversas individuais no Microsoft Teams envolvendo usuários pertencentes ao tenant externo `<INTERNAL_DOMAIN_24>`. A regra monitora comunicações OneOnOne originadas ou envolvendo esse domínio, permitindo identificar possíveis tentativas de phishing, engenharia social ou abordagem maliciosa por meio de tenants externos do Microsoft 365.",
+    "alert_name": "O365_Suspicious External Teams Chat from Known Tenant",
+    "alert_category": "INFILTRATION",
+    "alert_type": null,
+    "alert_description": "Foi identificada a criação de uma conversa individual no Microsoft Teams envolvendo um usuário associado ao tenant externo suspeito <INTERNAL_DOMAIN_24>. A comunicação envolveu $user1 e $user2 , com origem no endereço IP $caller_ip . O SOC deve validar a legitimidade da comunicação e verificar possíveis indícios de phishing, engenharia social ou tentativa de interação maliciosa com usuários internos.",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {
+      "agent_hostname": null,
+      "action_local_ip": null,
+      "action_remote_ip": null,
+      "action_remote_port": null,
+      "agent_device_domain": null,
+      "actor_effective_username": null,
+      "actor_process_image_name": null,
+      "actor_process_image_path": null,
+      "actor_process_command_line": null,
+      "actor_process_image_sha256": null
+    },
+    "execution_mode": "REAL_TIME",
+    "search_window": null,
+    "simple_schedule": null,
+    "timezone": null,
+    "crontab": null,
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "user1",
+      "user2"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0001 - Initial Access": [
+        "T1566.003 - Phishing: Spearphishing via Service"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "CUSTOM",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]

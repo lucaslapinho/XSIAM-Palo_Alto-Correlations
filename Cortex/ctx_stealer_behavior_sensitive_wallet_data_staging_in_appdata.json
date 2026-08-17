@@ -1,0 +1,39 @@
+[
+  {
+    "rule_id": 157,
+    "name": "CTX_Stealer Behavior - Sensitive Wallet Data Staging in AppData",
+    "severity": "SEV_040_HIGH",
+    "xql_query": "// ============================================================\n// Rule: CTX_Stealer Behavior - Sensitive Wallet Data Staging in AppData\n// Vendor: Cortex\n// Objective:\n// Detect activity associated with CTX_Stealer Behavior - Sensitive Wallet Data Staging in AppData.\n// Severity: SEV_040_HIGH\n// Category: COLLECTION\n// ============================================================\n// MITRE ATT&CK:\n// Tactic: TA0009 - Collection\n// Technique: T1005 - Data from Local System\n\n// Title: CTX - Stealer Behavior - Sensitive Wallet Data Staging in AppData\n// Description: Detecta processos não autorizados criando ou modificando arquivos em diretórios de carteiras\n// cripto e dados sensíveis dentro de AppData\\Roaming. Útil para comportamento de stealers.\n// MITRE ATT&CK: T1005 (Data from Local System), T1074.001 (Local Data Staging), T1555 (Credentials from Password Stores)\n//\n// NOTA TH: Stealers modernos (Vidar, RedLine, Lumma) buscam especificamente estes diretórios.\n// O padrão típico é: processo de baixa reputação + acesso a múltiplos dirs de wallet em curto intervalo.\n// Para TH proativo, combinar com busca de conexões externas pelo mesmo processo no mesmo período.\n// Pivô recomendado: actor_process_image_sha256 → VirusTotal / XSIAM Threat Intel.\n//\n// ALERT_CATEGORY CORRIGIDO [v2]: \"COLLECTION\" não é categoria válida no XSIAM.\n// Categoria corrigida para CREDENTIAL_ACCESS (tática do T1555 — mais precisa para credenciais de wallet).\n//\n// CORREÇÃO [v2]: Exclusão de processo legítimo alterada para usar contains em vez de nome exato.\n// Nomes hardcoded com versão (ex: electrum-4.7.2.exe) quebram a cada atualização de software.\n// Solução mais robusta: usar actor_process_signature_status = \"SIGNED\" como condição de exclusão.\n\nconfig case_sensitive = false\n| dataset = xdr_data\n\n| filter agent_os_type = ENUM.AGENT_OS_WINDOWS\n| filter event_type = ENUM.FILE\n    and event_sub_type in (ENUM.FILE_WRITE, ENUM.FILE_CREATE_NEW)\n\n| fields\n    _time,\n    agent_hostname,\n    agent_ip_addresses,\n    actor_effective_username,\n    actor_process_image_name,\n    actor_process_image_path,\n    actor_process_command_line,\n    actor_process_image_sha256,\n    actor_process_signature_status,\n    action_file_path,\n    action_file_name,\n    causality_actor_process_image_name,\n    causality_actor_process_command_line\n\n| alter file_path_l = lowercase(action_file_path)\n\n// Diretórios de carteiras cripto comumente visados por stealers\n// Nota: carteiras de browser (Metamask, Phantom) ficam em perfil do browser, não aqui\n| filter file_path_l ~= \"\\\\\\\\appdata\\\\\\\\roaming\\\\\\\\(armory|bytecoin|multibit|exodus|ethereum|electrum|atomic|guarda|walletwasabi|electroncash|sparrow|iocoins?|ppcoin|bbqcoin)\\\\\\\\\"\n\n// Exclusão de aplicativos legítimos — usando contains para robustez contra atualizações de versão\n// Recomendação adicional: filtrar por actor_process_signature_status = \"SIGNED\" como allowlist mais ampla\n| filter actor_process_image_name not contains \"Atomic Wallet\"\n    and actor_process_image_name not contains \"Exodus\"\n    and actor_process_image_name not contains \"Sparrow\"\n    and actor_process_image_name not contains \"electrum\"\n\n| sort desc _time\n",
+    "is_enabled": false,
+    "description": "Detecta criação/escrita de arquivos em diretórios de carteiras cripto ou dados sensíveis no AppData\\Roaming por processos que não são os aplicativos legítimos.",
+    "alert_name": "CTX_Stealer Behavior - Sensitive Wallet Data Staging in AppData",
+    "alert_category": "COLLECTION",
+    "alert_type": null,
+    "alert_description": "Detectada possível coleta ou staging de dados sensíveis no host $agent_hostname . O processo $actor_process_image_name gravou arquivos em diretório associado a carteiras ou dados sensíveis: $action_file_path .",
+    "alert_domain": "DOMAIN_SECURITY",
+    "alert_fields": {},
+    "execution_mode": "SCHEDULED",
+    "search_window": "1 hours",
+    "simple_schedule": "10 minutes",
+    "timezone": "America/Sao_Paulo",
+    "crontab": "*/10 * * * *",
+    "suppression_enabled": true,
+    "suppression_duration": "1 hours",
+    "suppression_fields": [
+      "agent_hostname"
+    ],
+    "dataset": "alerts",
+    "user_defined_severity": null,
+    "user_defined_category": null,
+    "mitre_defs": {
+      "TA0009 - Collection": [
+        "T1005 - Data from Local System"
+      ]
+    },
+    "investigation_query_link": "",
+    "drilldown_query_timeframe": "ALERT",
+    "mapping_strategy": "AUTO",
+    "action": "ALERTS",
+    "lookup_mapping": []
+  }
+]
